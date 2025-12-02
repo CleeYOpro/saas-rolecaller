@@ -16,25 +16,25 @@ export function Navigation() {
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
             <Link href="/" className="text-xl font-bold font-display">
-              YourSaaS
+              RoleCaller
             </Link>
             <div className="hidden md:flex items-center gap-6">
               <Link href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Features
               </Link>
-              <Link href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Pricing
-              </Link>
               <Link href="#about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                About
+                About Us
+              </Link>
+              <Link href="#changelog" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Changelog
               </Link>
             </div>
           </div>
           <div className="flex items-center gap-4">
             <ShinyButton variant="secondary" className="hidden sm:inline-flex">
-              Sign In
+              Admin Sign In
             </ShinyButton>
-            <ShinyButton>Get Started</ShinyButton>
+            <ShinyButton>Add Your School</ShinyButton>
           </div>
         </div>
       </div>

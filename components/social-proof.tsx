@@ -1,48 +1,59 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { MapPin, Users, HeartHandshake } from "lucide-react"
 
 export function SocialProof() {
-  const companies = [
-    { name: "DOMO", width: 100 },
-    { name: "netradyne", width: 140 },
-    { name: "SOPHOS", width: 140 },
-    { name: "RobCo", width: 120 },
+  const impact = [
+    {
+      icon: MapPin, number: "64+", label: "remote & tribal schools"
+    },
+    { icon: Users, number: "4200+", label: "children tracked daily" },
+    { icon: HeartHandshake, number: "18", label: "states across India" },
   ]
 
   return (
-    <section className="border-y border-border bg-secondary/30 py-12">
+    <section className="border-y border-border/30 bg-gray-100 dark:bg-gray-900 py-16">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-16">
-          {/* Left side: Trust text */}
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
+
+          {/* Left side — quiet trust statement */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="text-center lg:text-left"
+            transition={{ duration: 0.7 }}
+            className="text-center lg:text-left max-w-md"
           >
-            <p className="text-lg text-muted-foreground">
-              Trusted by over 2,000
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Serving the most forgotten classrooms of India
               <br />
-              vendors & buyers
+              <span className="text-lg text-muted-foreground leading-relaxed">
+                with the Friends Missionary Prayer Band (FMPB)
+              </span>
             </p>
           </motion.div>
 
-          {/* Right side: Company logos in a horizontal row */}
-          <div className="flex items-center gap-8 md:gap-12 flex-wrap justify-center lg:justify-end flex-1">
-            {companies.map((company, index) => (
+          {/* Right side — minimal numbers */}
+          <div className="flex items-center gap-16 md:gap-20 flex-wrap justify-center lg:justify-end">
+            {impact.map((item, i) => (
               <motion.div
-                key={company.name}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 0.5, y: 0 }}
-                whileHover={{ opacity: 0.8, scale: 1.05 }}
+                key={item.label}
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-                className="text-muted-foreground font-bold text-xl tracking-wide"
-                style={{ minWidth: company.width }}
+                transition={{ duration: 0.5, delay: i * 0.15 }}
+                className="flex flex-col items-center lg:items-start gap-2"
               >
-                {company.name}
+                <div className="flex items-baseline gap-2">
+                  <item.icon className="w-5 h-5 text-blue-400/70 mt-1" />
+                  <span className="text-4xl font-light tracking-tight text-foreground">
+                    {item.number}
+                  </span>
+                </div>
+                <span className="text-sm text-muted-foreground font-medium">
+                  {item.label}
+                </span>
               </motion.div>
             ))}
           </div>

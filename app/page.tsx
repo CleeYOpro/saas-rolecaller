@@ -3,13 +3,15 @@ import { HeroSection } from "@/components/hero-section"
 import { SocialProof } from "@/components/social-proof"
 import { HowItWorksSection } from "@/components/how-it-works-section"
 import { FeaturesSection } from "@/components/features-section"
-import { FeaturesSlideshowSection } from "@/components/features-slideshow-section"
-import { TestimonialsSection } from "@/components/testimonials-section"
-import { PricingSection } from "@/components/pricing-section"
-import { FAQSection } from "@/components/faq-section"
+import { ScriptureHeroSection } from "@/components/features-slideshow-section"
+import { SiLinkedin } from "react-icons/si";
+import { BsGooglePlay } from "react-icons/bs";
+import { SiGithub } from "react-icons/si";
+import { FaLink } from "react-icons/fa6";
 
 export default function Home() {
   return (
+
     <div className="min-h-screen">
       <Navigation />
       <main>
@@ -17,85 +19,88 @@ export default function Home() {
         <SocialProof />
         <FeaturesSection />
         <HowItWorksSection />
-        <FeaturesSlideshowSection />
-        <TestimonialsSection />
-        <PricingSection />
-        <FAQSection />
+        <ScriptureHeroSection />
       </main>
-      <footer className="border-t border-border py-12 mt-20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="font-bold mb-4">YourSaaS</h3>
-              <p className="text-sm text-muted-foreground">
-                Building the future of productivity with AI-powered tools.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    Features
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    Pricing
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    Security
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    About
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    Blog
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    Careers
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    Privacy
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    Terms
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    Contact
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-border mt-12 pt-8 text-center text-sm text-muted-foreground">
-            © 2025 YourSaaS. All rights reserved.
+      <footer className="border-t border-border py-12 mt-20 bg-gray-100 dark:bg-gray-900">
+        <div className="container mx-auto px-6 flex justify-between items-end">
+
+          {/* Massive RoleCaller with hover animation */}
+          <h1 className="
+      text-9xl lg:text-[14rem] xl:text-[16rem] 
+      font-extrabold tracking-tighter leading-none 
+      text-[#0075e6] select-none
+      transition-all duration-700 ease-out
+      hover:scale-105 hover:text-[#0094ff] 
+      hover:-translate-y-2 hover:drop-shadow-2xl
+      cursor-default
+    ">
+            RoleCaller
+          </h1>
+
+          {/* Social / Store Icons with individual hover bounce */}
+          <div className="flex items-center gap-8 pb-2">
+            {/* LinkedIn */}
+            <a
+              href="#"
+              aria-label="LinkedIn"
+              className="
+      text-muted-foreground hover:text-foreground 
+      transition-all duration-300 
+      hover:scale-125 hover:-translate-y-2
+      hover:rotate-6
+    "
+            >
+              <SiLinkedin size={32} />
+            </a>
+
+            {/* GitHub */}
+            <a
+              href="#"
+              aria-label="GitHub"
+              className="
+      text-muted-foreground hover:text-foreground 
+      transition-all duration-300 
+      hover:scale-125 hover:-translate-y-2
+      hover:rotate-6
+    "
+            >
+              <SiGithub size={32} />
+            </a>
+
+            {/* Play Store */}
+            <a
+              href="#"
+              aria-label="Google Play"
+              className="
+      text-muted-foreground hover:text-foreground 
+      transition-all duration-300 
+      hover:scale-125 hover:-translate-y-2
+      hover:-rotate-6
+    "
+            >
+              <BsGooglePlay size={32} />
+            </a>
+
+            {/* Website / Link */}
+            <a
+              href="#"
+              aria-label="Website"
+              className="
+      text-muted-foreground hover:text-foreground 
+      transition-all duration-300 
+      hover:scale-125 hover:-translate-y-2
+      hover:rotate-12
+    "
+            >
+              <FaLink size={32} />
+            </a>
           </div>
         </div>
+
+        {/* Copyright with subtle fade-in on hover (optional extra touch) */}
+        <p className="text-center text-sm text-muted-foreground mt-10 transition-opacity duration-500 hover:opacity-80">
+          © 2025 RoleCaller — Built for FMPB with ❤️
+        </p>
       </footer>
     </div>
   )
