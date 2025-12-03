@@ -16,7 +16,7 @@ export function Navigation() {
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
             <Link href="/" className="text-xl font-bold font-display">
-              RoleCaller
+              rolecaller.
             </Link>
             <div className="hidden md:flex items-center gap-6">
               <Link href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">

@@ -36,7 +36,7 @@ export default function Home() {
       hover:-translate-y-2 hover:drop-shadow-2xl
       cursor-default
     ">
-            RoleCaller
+            rolecaller.
           </h1>
 
           {/* Admin Login Button */}
