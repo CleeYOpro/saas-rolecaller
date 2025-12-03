@@ -8,7 +8,7 @@ interface ShinyButtonProps {
   children: React.ReactNode
   onClick?: () => void
   className?: string
-  variant?: "primary" | "secondary"
+  variant?: "primary" | "secondary" | "red"   // ← added "red"
   disabled?: boolean
 }
 

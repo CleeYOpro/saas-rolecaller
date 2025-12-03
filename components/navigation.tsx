@@ -32,9 +32,9 @@ export function Navigation() {
           </div>
           <div className="flex items-center gap-4">
             <ShinyButton variant="secondary" className="hidden sm:inline-flex">
-              Admin Sign In
+              <Link href="/sign-in">Admin Sign In</Link>
             </ShinyButton>
-            <ShinyButton>Add Your School</ShinyButton>
+            <ShinyButton><Link href="#dgfd">Add Your School</Link></ShinyButton>
           </div>
         </div>
       </div>

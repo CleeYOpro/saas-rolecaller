@@ -48,8 +48,7 @@
   border-radius: 16px;
   color: var(--shiny-cta-fg);
   background: var(--shiny-cta-bg);
-  box-shadow: inset 0 0 0 1px var(--shiny-cta-bg), inset 0 -3px 8px 0 rgba(191, 219, 254, 0.6), 0 4px 12px -2px
-    rgba(59, 130, 246, 0.25);
+  box-shadow: inset 0 0 0 1px var(--shiny-cta-bg), inset 0 -3px 8px 0 rgba(191, 219, 254, 0.6), 0 4px 12px -2px rgba(59, 130, 246, 0.25);
   transition: var(--transition);
   transition-property: background, border-color, box-shadow;
 }
@@ -89,11 +88,9 @@
   height: 100%;
   --dot-size: 1.5px;
   --dot-space: 8px;
-  background: radial-gradient(
-    circle at var(--dot-space) var(--dot-space),
-    rgba(255, 255, 255, 0.8) var(--dot-size),
-    transparent var(--dot-size)
-  );
+  background: radial-gradient(circle at var(--dot-space) var(--dot-space),
+      rgba(255, 255, 255, 0.8) var(--dot-size),
+      transparent var(--dot-size));
   background-size: var(--dot-space) var(--dot-space);
   background-position: 0 0;
   border-radius: inherit;
@@ -136,8 +133,7 @@
 .shiny-cta:is(:hover, :focus-visible) {
   background: var(--shiny-cta-bg);
   border-color: var(--shiny-cta-bg);
-  box-shadow: inset 0 0 0 1px var(--shiny-cta-bg), inset 0 -30px 40px -20px rgba(191, 219, 254, 0.35), 0 4px 16px -2px
-    rgba(59, 130, 246, 0.35);
+  box-shadow: inset 0 0 0 1px var(--shiny-cta-bg), inset 0 -30px 40px -20px rgba(191, 219, 254, 0.35), 0 4px 16px -2px rgba(59, 130, 246, 0.35);
 }
 
 .shiny-cta:is(:hover, :focus-visible)::before {
@@ -175,11 +171,41 @@
 }
 
 .shiny-cta.secondary::before {
-  background: radial-gradient(
-    circle at var(--dot-space) var(--dot-space),
-    rgba(0, 0, 0, 0.3) var(--dot-size),
-    transparent var(--dot-size)
-  );
+  background: radial-gradient(circle at var(--dot-space) var(--dot-space),
+      rgba(0, 0, 0, 0.3) var(--dot-size),
+      transparent var(--dot-size));
+  background-size: var(--dot-space) var(--dot-space);
+}
+
+/* ───── RED VARIANT ───── */
+.shiny-cta.red {
+  --shiny-cta-bg: #ef4444;
+  /* red-500 */
+  --shiny-cta-bg-subtle: #dc2626;
+  /* red-600 */
+  --shiny-cta-fg: #ffffff;
+  --shiny-cta-highlight: #f87171;
+  /* red-400 */
+  --shiny-cta-highlight-subtle: #fecaca;
+  /* red-200 */
+  border-color: #f87171;
+}
+
+/* Hover/focus styles for red variant */
+.shiny-cta.red:is(:hover, :focus-visible) {
+  background: var(--shiny-cta-bg);
+  border-color: var(--shiny-cta-bg);
+  box-shadow:
+    inset 0 0 0 1px var(--shiny-cta-bg),
+    inset 0 -30px 40px -20px rgba(254, 202, 202, 0.35),
+    0 4px 16px -2px rgba(239, 68, 68, 0.35);
+}
+
+/* Subtle dot overlay on hover (red version uses a slightly darker dot for contrast) */
+.shiny-cta.red::before {
+  background: radial-gradient(circle at var(--dot-space) var(--dot-space),
+      rgba(255, 255, 255, 0.7) var(--dot-size),
+      transparent var(--dot-size));
   background-size: var(--dot-space) var(--dot-space);
 }
 
@@ -196,10 +222,12 @@
 }
 
 @keyframes breathe {
+
   from,
   to {
     scale: 1;
   }
+
   50% {
     scale: 1.2;
   }
