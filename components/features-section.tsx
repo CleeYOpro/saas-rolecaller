@@ -12,7 +12,7 @@ export function FeaturesSection() {
       title: "Works Without Internet",
       description:
         "Take attendance even with zero signal. Data is stored securely on the device and automatically syncs once connection returns.",
-      image: "https://images.unsplash.com/photo-1588075592446-4f8e7c22f2ec?w=800&q=80&fit=crop",
+      image: "https://dz2cdn1.dzone.com/storage/temp/13837795-no-internet.png",
       alt: "Teacher using a mobile app in a rural classroom",
       schoolname: "",
     },
@@ -20,8 +20,8 @@ export function FeaturesSection() {
       icon: Heart,
       title: "Free & Open Access",
       description:
-        "Completely free for partner schools. No subscriptions, no hidden costs — built to serve classrooms, not profits.",
-      image: "https://images.pexels.com/photos/8198050/pexels-photo-8198050.jpeg?w=800&q=80",
+        "Completely free for partner schools. Data can be easily accesible via director login and can be downloaded as excel.",
+      image: "/WhatsApp Image 2026-02-02 at 9.57.09 PM.jpeg",
       alt: "Students in school uniforms smiling in classroom",
       schoolname: "In partnership with Friends Missionary Prayer Band",
     },
@@ -30,7 +30,7 @@ export function FeaturesSection() {
       title: "Attendance You Can Trust",
       description:
         "Track daily attendance with accuracy and generate simple records. Know who’s present, who’s absent, and spot patterns early.",
-      image: "https://images.unsplash.com/photo-1594737626040-2b7e9eac9c3e?w=800&q=80&fit=crop",
+      image: "https://miro.medium.com/v2/resize:fit:4800/format:webp/1*uXyYDqJXSTpmbcAumJJGFQ.jpeg",
       alt: "Students raising hands in classroom",
       schoolname: "",
     },

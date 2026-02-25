@@ -28,6 +28,7 @@ export default function LoginPage() {
     // Director state
     const [directorUsername, setDirectorUsername] = useState("");
     const [directorPassword, setDirectorPassword] = useState("");
+    const [showDirectorPassword, setShowDirectorPassword] = useState(false); // State to toggle password visibility
 
     const [isAuthed, setIsAuthed] = useState(false);
     const [error, setError] = useState("");
@@ -333,14 +334,36 @@ export default function LoginPage() {
                                 required
                             />
 
-                            <input
-                                type="password"
-                                value={directorPassword}
-                                onChange={(e) => setDirectorPassword(e.target.value)}
-                                placeholder="Password"
-                                className="w-full px-4 py-3 rounded-xl bg-[#121212] text-white border border-[#333] focus:border-[#3A86FF] focus:outline-none placeholder-[#888]"
-                                required
-                            />
+                                <div className="relative">
+                                    <input
+                                        type={showDirectorPassword ? "text" : "password"}
+                                        value={directorPassword}
+                                        onChange={(e) => setDirectorPassword(e.target.value)}
+                                        placeholder="Password"
+                                        className="w-full px-4 py-3 rounded-xl bg-[#121212] text-white border border-[#333] focus:border-[#3A86FF] focus:outline-none placeholder-[#888]"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                        onClick={() => setShowDirectorPassword(!showDirectorPassword)}
+                                        aria-label={showDirectorPassword ? "Hide password" : "Show password"}
+                                    >
+                                        {showDirectorPassword ? (
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="cursor-pointer">
+                                                <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
+                                                <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
+                                                <path d="M6.61 6.61A13.5 13.5 0 0 0 2 12s3 7 10 7a13.5 13.5 0 0 0 6.61-2.39"></path>
+                                            </svg>
+                                        ) : (
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="cursor-pointer">
+                                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-10-7-10-7a10 10 0 0 1 3.34-4.66"></path>
+                                                <path d="M12 12v.01"></path>
+                                                <path d="M17 17l1.5-1.5"></path>
+                                            </svg>
+                                        )}
+                                    </button>
+                                </div>
 
                             {error && (
                                 <p className="text-[#ff4d4f] bg-[#451A1A] px-3 py-2 rounded-lg text-sm" role="alert">

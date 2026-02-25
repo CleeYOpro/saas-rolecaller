@@ -392,6 +392,35 @@ export default function AdminDashboard({
                                 </div>
                             </div>
                         </div>
+
+                        {/* Excel Download */}
+                        <div className="flex justify-end mt-4 mb-8">
+                            <ShinyButton
+                                onClick={async () => {
+                                    try {
+                                        const res = await fetch(`/api/attendance/export?schoolId=${school.id}`);
+                                        if (!res.ok) throw new Error("Failed to generate report");
+                                        const blob = await res.blob();
+                                        const url = window.URL.createObjectURL(blob);
+                                        const a = document.createElement('a');
+                                        a.href = url;
+                                        a.download = `Attendance_Report_${school.name.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                                        document.body.appendChild(a);
+                                        a.click();
+                                        window.URL.revokeObjectURL(url);
+                                        document.body.removeChild(a);
+                                    } catch (error) {
+                                        console.error("Error downloading Excel:", error);
+                                        alert("Failed to download Excel report");
+                                    }
+                                }}
+                                variant="secondary"
+                                className="px-6 py-2 font-semibold"
+                            >
+                                📊 Download Last 30 Days Attendance
+                            </ShinyButton>
+                        </div>
+
                         {/* Student Search & Attendance Overview */}
                         <StudentSearchOverview
                             students={students}
