@@ -11,6 +11,10 @@ export async function GET() {
 
     const directorId = session.directorId;
 
+    // Fetch director name
+    const directorRes = await pool.query('SELECT username FROM directors WHERE id = $1', [directorId]);
+    const directorName = directorRes.rows[0]?.username || 'Director';
+
     // Fetch schools assigned to this director
     const schoolsResult = await pool.query(
       `SELECT s.id, s.name, s.email 
@@ -91,6 +95,7 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
+      directorName,
       schools: enrichedSchools,
       summary: {
         averageAttendance: globalAverage,

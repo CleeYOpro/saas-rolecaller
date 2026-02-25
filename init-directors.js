@@ -39,8 +39,8 @@ async function init() {
     console.log('Created director_schools join table');
 
     // Create a mock director for testing
-    const username = 'director_demo';
-    const password = 'password123';
+    const username = 'BenAnthrayoseFMPB';
+    const password = 'maltoschools5';
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const checkDirector = await client.query('SELECT id FROM directors WHERE username = $1', [username]);
@@ -52,22 +52,32 @@ async function init() {
         [username, hashedPassword]
       );
       directorId = insertResult.rows[0].id;
-      console.log('Created mock director: username "director_demo", password "password123"');
+      console.log('Created mock director: username "BenAnthrayoseFMPB", password "maltoschools5"');
     } else {
       directorId = checkDirector.rows[0].id;
-      console.log('Mock director already exists');
+
+      // Also update the password just in case
+      await client.query('UPDATE directors SET hashed_password = $1 WHERE id = $2', [hashedPassword, directorId]);
+
+      console.log('Mock director already exists, updated password.');
     }
 
     // Assign some schools to the director
-    const schoolsResult = await client.query('SELECT id FROM schools LIMIT 2');
+    // Specifically Padari CDC and Bichakani CDC
+    const schoolsResult = await client.query("SELECT id, name FROM schools WHERE name IN ('Padari CDC', 'Bichakani CDC')");
+
+    if (schoolsResult.rows.length === 0) {
+      console.log("Could not find the specific schools. They might not exist in the db.");
+    }
+
     for (const school of schoolsResult.rows) {
-      await client.query(`
+      const assignRes = await client.query(`
         INSERT INTO director_schools (director_id, school_id)
         VALUES ($1, $2)
         ON CONFLICT DO NOTHING
       `, [directorId, school.id]);
+      console.log(`Assigned school: ${school.name}`);
     }
-    console.log('Assigned schools to mock director');
 
   } catch (err) {
     console.error('Error connecting to database:', err);

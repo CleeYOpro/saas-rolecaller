@@ -3,6 +3,7 @@
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import AdminDashboard from "../../../admin";
+import { ShinyButton } from "@/components/ui/shiny-button";
 
 export type AttendanceStatus = "present" | "absent" | "late";
 export type Student = { id: string; name: string; standard?: string; classId?: string; schoolId: string };
@@ -109,12 +110,11 @@ export default function DirectorSchoolView({ params }: { params: Promise<{ schoo
       <div className="min-h-screen bg-[#121212] flex flex-col items-center justify-center p-8">
         <div className="bg-[#1C1C1E] p-8 rounded-2xl border border-red-500/20 max-w-md w-full text-center">
           <p className="text-red-400 font-medium text-lg mb-4">{error}</p>
-          <button
-            onClick={() => router.push("/director")}
-            className="px-6 py-2 bg-[#3A86FF] hover:bg-[#2A76EF] transition-colors rounded-lg text-white font-medium"
-          >
-            Back to Dashboard
-          </button>
+          <div onClick={() => router.push("/director")} className="inline-block">
+            <ShinyButton className="px-6 py-2">
+              Back to Dashboard
+            </ShinyButton>
+          </div>
         </div>
       </div>
     );
@@ -126,12 +126,11 @@ export default function DirectorSchoolView({ params }: { params: Promise<{ schoo
             <div className="text-sm font-medium text-[#888]">
               Director View <span className="mx-2">/</span> {selectedSchool.name}
             </div>
-            <button
-              onClick={() => router.push("/director")}
-              className="text-sm font-medium text-[#3A86FF] hover:text-[#5C9DFF] transition-colors"
-            >
-              ← Back to Dashboard
-            </button>
+        <div onClick={() => router.push("/director")}>
+          <ShinyButton className="px-4 py-2">
+            ← Back to Dashboard
+          </ShinyButton>
+        </div>
         </div>
         <AdminDashboard
             goBack={() => router.push("/director")}

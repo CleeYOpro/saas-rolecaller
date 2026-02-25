@@ -27,6 +27,7 @@ interface DashboardSummary {
 
 interface DashboardData {
   success: boolean;
+  directorName?: string;
   schools?: SchoolDashboardData[];
   summary?: DashboardSummary;
   error?: string;
@@ -34,6 +35,7 @@ interface DashboardData {
 
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { ShinyButton } from "@/components/ui/shiny-button";
 
 function SchoolCard({ school, onDrillDown }: { school: SchoolDashboardData; onDrillDown: () => void }) {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -148,12 +150,11 @@ function SchoolCard({ school, onDrillDown }: { school: SchoolDashboardData; onDr
         )}
       </div>
 
-      <button
-        onClick={onDrillDown}
-        className="w-full py-2.5 bg-[#29A0FC] hover:bg-[#1E8EE5] text-white text-lg font-medium rounded-full transition-colors"
-      >
-        view school specifics
-      </button>
+      <div onClick={onDrillDown} className="w-full mt-2">
+        <ShinyButton className="w-full py-2.5 text-lg">
+          view school specifics
+        </ShinyButton>
+      </div>
     </motion.div>
   );
 }
@@ -197,12 +198,11 @@ export default function DirectorDashboard() {
           <p className="text-red-400 font-medium text-lg mb-4">
             {data?.error || "Failed to load dashboard data."}
           </p>
-          <button
-            onClick={() => router.push("/sign-in")}
-            className="px-6 py-2 bg-[#3A86FF] hover:bg-[#2A76EF] transition-colors rounded-lg text-white font-medium"
-          >
-            Back to Login
-          </button>
+          <div onClick={() => router.push("/sign-in")} className="mt-4 inline-block">
+            <ShinyButton className="px-6 py-2">
+              Back to Login
+            </ShinyButton>
+          </div>
         </div>
       </div>
     );
@@ -212,19 +212,20 @@ export default function DirectorDashboard() {
     <div className="min-h-screen bg-[#121212] flex flex-col items-center">
       <div className="w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 w-full">
             <div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight uppercase">Welcome Director</h1>
+            <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight uppercase">
+              Welcome {data?.directorName || 'Director'}
+            </h1>
             </div>
-            <button
-                onClick={async () => {
-                    document.cookie = 'director_session=; Max-Age=0; path=/;';
-                    router.push('/sign-in');
-                }}
-                className="px-4 py-2 border border-[#333] hover:border-[#555] rounded-lg text-sm font-medium text-[#EAEAEA] transition-colors"
-            >
-                Sign Out
-            </button>
+          <div onClick={async () => {
+            document.cookie = 'director_session=; Max-Age=0; path=/;';
+            router.push('/sign-in');
+          }}>
+            <ShinyButton>
+              Sign Out
+            </ShinyButton>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 lg:gap-8 gap-6 justify-items-center">

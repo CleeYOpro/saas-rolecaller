@@ -387,10 +387,6 @@ export default function AdminDashboard({
                                     <div className="text-[#EAEAEA] mt-2">Present</div>
                                 </div>
                                 <div className="bg-[#121212] p-6 rounded-lg border border-[#2D2D2D]">
-                                    <div className="text-[#ED6C02] text-4xl font-bold">{dailyAttendanceSummary.late}</div>
-                                    <div className="text-[#EAEAEA] mt-2">Late</div>
-                                </div>
-                                <div className="bg-[#121212] p-6 rounded-lg border border-[#2D2D2D]">
                                     <div className="text-[#D32F2F] text-4xl font-bold">{dailyAttendanceSummary.absent}</div>
                                     <div className="text-[#EAEAEA] mt-2">Absent</div>
                                 </div>
