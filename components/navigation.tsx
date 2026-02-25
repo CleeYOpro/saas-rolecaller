@@ -22,9 +22,6 @@ export function Navigation() {
               <Link href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Features
               </Link>
-              <Link href="#about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                About Us
-              </Link>
               <Link href="#changelog" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Changelog
               </Link>

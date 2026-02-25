@@ -20,10 +20,15 @@ export type AttendanceMap = Record<
 
 export default function LoginPage() {
     // Force admin flow from the start
-    const [role] = useState<"admin">("admin");
+    const [loginType, setLoginType] = useState<"admin" | "director">("admin");
     const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
     const [schoolEmail, setSchoolEmail] = useState("");
     const [schoolPassword, setSchoolPassword] = useState("");
+
+    // Director state
+    const [directorUsername, setDirectorUsername] = useState("");
+    const [directorPassword, setDirectorPassword] = useState("");
+
     const [isAuthed, setIsAuthed] = useState(false);
     const [error, setError] = useState("");
     const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -128,7 +133,7 @@ export default function LoginPage() {
         setIsAuthed(false);
     };
 
-    const handleLogin = async (e: React.FormEvent) => {
+    const handleAdminLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedSchool) return setError("Please select a school");
 
@@ -149,6 +154,33 @@ export default function LoginPage() {
                 setIsAuthed(true);
                 setError("");
                 setToastMessage("Admin login successful");
+            } else {
+                setError(data.error || "Invalid credentials");
+                setToastMessage("Login failed");
+            }
+        } catch (err) {
+            setError("Login failed");
+            setToastMessage("Login failed");
+        }
+    };
+
+    const handleDirectorLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const res = await fetch("/api/auth/director", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    username: directorUsername,
+                    password: directorPassword,
+                }),
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                // Redirect directly to director dashboard
+                router.push('/director');
             } else {
                 setError(data.error || "Invalid credentials");
                 setToastMessage("Login failed");
@@ -207,7 +239,22 @@ export default function LoginPage() {
                     </h1>
                 </div>
 
-                {schools.length === 0 ? (
+                <div className="flex bg-[#121212] p-1 rounded-lg">
+                    <button
+                        className={`flex-1 py-2 text-sm font-semibold rounded-md transition-colors ${loginType === "admin" ? "bg-[#3A86FF] text-white" : "text-[#888] hover:text-white"}`}
+                        onClick={() => { setLoginType("admin"); setError(""); }}
+                    >
+                        School Admin
+                    </button>
+                    <button
+                        className={`flex-1 py-2 text-sm font-semibold rounded-md transition-colors ${loginType === "director" ? "bg-[#3A86FF] text-white" : "text-[#888] hover:text-white"}`}
+                        onClick={() => { setLoginType("director"); setError(""); }}
+                    >
+                        Director
+                    </button>
+                </div>
+
+                {schools.length === 0 && loginType === "admin" ? (
                     <>
                         <div className="p-4 bg-[#451A1A] border border-[#D32F2F] rounded-lg text-sm">
                             <p className="text-[#ff4d4f] font-semibold mb-2">No schools found</p>
@@ -219,8 +266,8 @@ export default function LoginPage() {
                             Back
                         </ShinyButton>
                     </>
-                ) : (
-                    <form onSubmit={handleLogin} className="flex flex-col gap-5">
+                ) : loginType === "admin" ? (
+                    <form onSubmit={handleAdminLogin} className="flex flex-col gap-5">
                         <select
                             value={selectedSchool?.id || ""}
                             onChange={(e) => {
@@ -275,6 +322,44 @@ export default function LoginPage() {
                             </ShinyButton>
                         </div>
                     </form>
+                    ) : (
+                        <form onSubmit={handleDirectorLogin} className="flex flex-col gap-5">
+                            <input
+                                type="text"
+                                value={directorUsername}
+                                onChange={(e) => setDirectorUsername(e.target.value)}
+                                placeholder="Director Username"
+                                className="w-full px-4 py-3 rounded-xl bg-[#121212] text-white border border-[#333] focus:border-[#3A86FF] focus:outline-none placeholder-[#888]"
+                                required
+                            />
+
+                            <input
+                                type="password"
+                                value={directorPassword}
+                                onChange={(e) => setDirectorPassword(e.target.value)}
+                                placeholder="Password"
+                                className="w-full px-4 py-3 rounded-xl bg-[#121212] text-white border border-[#333] focus:border-[#3A86FF] focus:outline-none placeholder-[#888]"
+                                required
+                            />
+
+                            {error && (
+                                <p className="text-[#ff4d4f] bg-[#451A1A] px-3 py-2 rounded-lg text-sm" role="alert">
+                                    {error}
+                                </p>
+                            )}
+
+                            <div>
+                                <ShinyButton className="w-full py-3 text-lg">
+                                    Login as Director
+                                </ShinyButton>
+                            </div>
+
+                            <div>
+                                <ShinyButton onClick={() => router.push('/')} variant="secondary" className="w-full" >
+                                    Back
+                                </ShinyButton>
+                            </div>
+                        </form>
                 )}
             </div>
 

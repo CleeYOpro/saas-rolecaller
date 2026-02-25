@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import pool from '../../../lib/db';
+import { verifyDirectorAccess } from '../../../lib/rbac';
+import { getSession } from '../../../lib/jwt';
 
 // Removed local client instantiation and connect()
 
@@ -11,6 +13,9 @@ export async function GET(request: Request) {
 
     let query = 'SELECT id, name, grade, class_id as "classId", school_id as "schoolId" FROM students';
     let params: any[] = [];
+
+    const accessError = await verifyDirectorAccess(schoolId);
+    if (accessError) return accessError;
 
     if (schoolId) {
       query += ' WHERE school_id = $1';
@@ -27,6 +32,9 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const session = await getSession();
+    if (session?.role === 'director') return NextResponse.json({ error: 'Directors cannot modify data' }, { status: 403 });
+
     const { id, name, standard, classId, schoolId } = await request.json();
 
     const result = await pool.query(
@@ -43,6 +51,9 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
+    const session = await getSession();
+    if (session?.role === 'director') return NextResponse.json({ error: 'Directors cannot modify data' }, { status: 403 });
+
     const { id, name, standard, classId, schoolId } = await request.json();
 
     const result = await pool.query(
@@ -63,6 +74,9 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    const session = await getSession();
+    if (session?.role === 'director') return NextResponse.json({ error: 'Directors cannot modify data' }, { status: 403 });
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 

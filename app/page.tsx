@@ -18,9 +18,7 @@ export default function Home() {
       <Navigation />
       <main>
         <HeroSection />
-        <SocialProof />
         <FeaturesSection />
-        <HowItWorksSection />
         <ScriptureHeroSection />
       </main>
       <footer className="border-t border-border py-12 mt-20 bg-gray-100 dark:bg-gray-900">

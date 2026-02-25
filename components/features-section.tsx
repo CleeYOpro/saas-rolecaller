@@ -9,27 +9,30 @@ export function FeaturesSection() {
   const features = [
     {
       icon: Smartphone,
-      title: "100% Offline",
-      description: "Teachers mark attendance deep in forests and hills — no internet ever needed.",
-      image: "https://images.unsplash.com/photo-1588075592446-4f8e7c22f2ec?w=800&q=80&fit=crop", // Tribal teacher using phone in remote classroom
-      alt: "Adivasi teacher using mobile app in a remote village school",
-      schoolname: "In partnership with Friends Missionary Prayer Band",
+      title: "Works Without Internet",
+      description:
+        "Take attendance even with zero signal. Data is stored securely on the device and automatically syncs once connection returns.",
+      image: "https://images.unsplash.com/photo-1588075592446-4f8e7c22f2ec?w=800&q=80&fit=crop",
+      alt: "Teacher using a mobile app in a rural classroom",
+      schoolname: "",
     },
     {
       icon: Heart,
-      title: "Free Forever",
-      description: "Open source and completely free for all mission schools. Built with love, sustained by community.",
-      image: "https://images.pexels.com/photos/8198050/pexels-photo-8198050.jpeg?w=800&q=80", // Smiling tribal children in uniform, natural light
-      alt: "Tribal children smiling in school — hope restored",
+      title: "Free & Open Access",
+      description:
+        "Completely free for partner schools. No subscriptions, no hidden costs — built to serve classrooms, not profits.",
+      image: "https://images.pexels.com/photos/8198050/pexels-photo-8198050.jpeg?w=800&q=80",
+      alt: "Students in school uniforms smiling in classroom",
       schoolname: "In partnership with Friends Missionary Prayer Band",
     },
     {
       icon: Users,
-      title: "Every Child Seen",
-      description: "Quietly tracks attendance so no student is forgotten — giving hope where paper failed.",
-      image: "https://images.unsplash.com/photo-1594737626040-2b7e9eac9c3e?w=800&q=80&fit=crop", // Group of tribal students raising hands in class
-      alt: "Every child now counted and cared for",
-      schoolname: "In partnership with Friends Missionary Prayer Band",
+      title: "Attendance You Can Trust",
+      description:
+        "Track daily attendance with accuracy and generate simple records. Know who’s present, who’s absent, and spot patterns early.",
+      image: "https://images.unsplash.com/photo-1594737626040-2b7e9eac9c3e?w=800&q=80&fit=crop",
+      alt: "Students raising hands in classroom",
+      schoolname: "",
     },
   ]
 
@@ -42,11 +45,8 @@ export function FeaturesSection() {
         className="text-center mb-16"
       >
         <h2 className="text-3xl sm:text-5xl font-bold mb-4 text-balance font-display">
-          Built for the Real India
+          Features
         </h2>
-        <p className="text-lg text-muted-foreground text-balance max-w-2xl mx-auto leading-relaxed">
-          No marketing hype. Just tools that work where children need them most.
-        </p>
       </motion.div>
 
       <div className="grid md:grid-cols-3 gap-8">
