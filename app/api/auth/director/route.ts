@@ -13,8 +13,6 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    console.log('DEBUG DATABASE_URL:', process.env.DATABASE_URL);
-
 
     // Check if director exists
     const result = await pool.query(
