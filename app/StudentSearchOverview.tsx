@@ -169,7 +169,7 @@ export default function StudentSearchOverview({
     const getAttendanceForDate = (day: number) => {
         if (!attendanceHistory) return null;
         const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-        return attendanceHistory.attendance.find((a) => a.date === dateStr);
+        return attendanceHistory.attendance.find((a) => a.date.startsWith(dateStr));
     };
 
     const previousMonth = () => {
@@ -336,18 +336,11 @@ export default function StudentSearchOverview({
                                                         style={{ width: `${attendancePercentages.present}%` }}
                                                         title={`Present: ${attendanceHistory.summary.present} (${attendancePercentages.present}%)`}
                                                     />
-                                                    <div
-                                                        className="absolute h-full bg-gradient-to-r from-[#ED6C02] to-[#FF9800]"
-                                                        style={{
-                                                            left: `${attendancePercentages.present}%`,
-                                                            width: `${attendancePercentages.late}%`,
-                                                        }}
-                                                        title={`Late: ${attendanceHistory.summary.late} (${attendancePercentages.late}%)`}
-                                                    />
+
                                                     <div
                                                         className="absolute h-full bg-gradient-to-r from-[#D32F2F] to-[#F44336]"
                                                         style={{
-                                                            left: `${attendancePercentages.present + attendancePercentages.late}%`,
+                                                            left: `${attendancePercentages.present}%`,
                                                             width: `${attendancePercentages.absent}%`,
                                                         }}
                                                         title={`Absent: ${attendanceHistory.summary.absent} (${attendancePercentages.absent}%)`}
@@ -357,8 +350,8 @@ export default function StudentSearchOverview({
                                         </div>
 
                                         {/* Stats Grid */}
-                                        <div className="grid grid-cols-3 gap-4">
-                                            <div className="bg-[#1E1E1E] rounded-lg p-4 border border-[#2D2D2D]">
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="bg-[#1E1E1E] rounded-lg p-3 border border-[#2D2D2D]">
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <div className="w-3 h-3 rounded-full bg-[#4CAF50]"></div>
                                                     <span className="text-sm text-[#EAEAEA]">Present</span>
@@ -368,17 +361,8 @@ export default function StudentSearchOverview({
                                                 </div>
                                                 <div className="text-xs text-[#888]">{attendanceHistory.summary.present} days</div>
                                             </div>
-                                            <div className="bg-[#1E1E1E] rounded-lg p-4 border border-[#2D2D2D]">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <div className="w-3 h-3 rounded-full bg-[#ED6C02]"></div>
-                                                    <span className="text-sm text-[#EAEAEA]">Late</span>
-                                                </div>
-                                                <div className="text-2xl font-bold text-[#ED6C02]">
-                                                    {attendancePercentages.late}%
-                                                </div>
-                                                <div className="text-xs text-[#888]">{attendanceHistory.summary.late} days</div>
-                                            </div>
-                                            <div className="bg-[#1E1E1E] rounded-lg p-4 border border-[#2D2D2D]">
+
+                                                    <div className="bg-[#1E1E1E] rounded-lg p-3 border border-[#2D2D2D]">
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <div className="w-3 h-3 rounded-full bg-[#D32F2F]"></div>
                                                     <span className="text-sm text-[#EAEAEA]">Absent</span>
@@ -391,120 +375,109 @@ export default function StudentSearchOverview({
                                         </div>
                                     </div>
                                         )}
-
-                                        {/* Calendar */}
-                                        {attendanceHistory && (
-                                            <div className="bg-[#121212] rounded-xl p-6 border border-[#2D2D2D]">
-                                                <div className="flex justify-between items-center mb-6">
-                                                    <h4 className="text-lg font-semibold text-[#F1F1F1]">
-                                                        {currentMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
-                                                    </h4>
-                                                    <div className="flex gap-2">
-                                                        <button
-                                                            onClick={previousMonth}
-                                                            className="p-2 rounded-lg bg-[#1E1E1E] text-[#EAEAEA] hover:bg-[#2D2D2D] transition-all duration-200"
-                                                        >
-                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                                            </svg>
-                                                        </button>
-                                                        <button
-                                                            onClick={() => setCurrentMonth(new Date())}
-                                                            className="p-2 rounded-lg bg-[#1E1E1E] text-[#EAEAEA] hover:bg-[#2D2D2D] transition-all duration-200"
-                                                        >
-                                                            Today
-                                                        </button>
-                                                        <button
-                                                            onClick={nextMonth}
-                                                            className="p-2 rounded-lg bg-[#1E1E1E] text-[#EAEAEA] hover:bg-[#2D2D2D] transition-all duration-200"
-                                                        >
-                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                                            </svg>
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                {/* Calendar Grid */}
-                                                <div className="grid grid-cols-7 gap-2">
-                                                    {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                                                        <div key={day} className="text-center text-sm font-semibold text-[#888] py-2">
-                                                            {day}
-                                                        </div>
-                                                    ))}
-
-                                                    {/* Empty cells for the start of the month */}
-                                                    {Array.from({ length: startingDayOfWeek }).map((_, i) => (
-                                                        <div key={`empty-${i}`} />
-                                                    ))}
-
-                                                    {/* Day cells */}
-                                                    {Array.from({ length: daysInMonth }).map((_, i) => {
-                                                        const day = i + 1;
-                                                const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-                                                const attendance = attendanceHistory.attendance.find(a => a.date === dateStr);
-                                                const isTodayDate = isToday(day);
-
-                                                // Determine the status color
-                                                let statusColor = "bg-gray-600"; // Default for no data
-                                                if (attendance) {
-                                                    if (attendance.status === "present") {
-                                                        statusColor = "bg-green-500";
-                                                    } else if (attendance.status === "absent") {
-                                                        statusColor = "bg-red-500";
-                                                    } else if (attendance.status === "late") {
-                                                        statusColor = "bg-orange-500";
-                                                    }
-                                                }
-
-                                                return (
-                                                    <div
-                                                        key={day}
-                                                        className={`relative aspect-square flex items-center justify-center rounded-lg transition-all duration-200 ${isTodayDate
-                                                                ? "ring-2 ring-blue-500 ring-opacity-70 shadow-lg shadow-blue-500/30"
-                                                                : ""
-                                                        }`}
-                                                    >
-                                                        <span className="text-sm text-[#EAEAEA]">{day}</span>
-                                                        {attendance ? (
-                                                            <div
-                                                                className={`absolute bottom-1 w-6 h-1 rounded-full ${statusColor}`}
-                                                                title={`${attendance.status.charAt(0).toUpperCase() + attendance.status.slice(1)}: ${dateStr}`}
-                                                            />
-                                                        ) : (
-                                                            <div
-                                                                className="absolute bottom-1 w-6 h-1 rounded-full bg-gray-600 opacity-40"
-                                                                title={`No data: ${dateStr}`}
-                                                            />
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                                </div>
-
-                                                {/* Legend */}
-                                                <div className="flex justify-center gap-6 mt-6 pt-4 border-t border-[#2D2D2D]">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                                                        <span className="text-sm text-[#EAEAEA]">Present</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-                                                        <span className="text-sm text-[#EAEAEA]">Late</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                                                        <span className="text-sm text-[#EAEAEA]">Absent</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-3 h-3 rounded-full bg-gray-600 opacity-40"></div>
-                                                        <span className="text-sm text-[#EAEAEA]">No Data</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
                                     </div>
 
+                                    {/* Calendar */}
+                                    {attendanceHistory && (
+                                        <div className="bg-[#121212] rounded-xl p-6 border border-[#2D2D2D]">
+                                            <div className="flex justify-between items-center mb-6">
+                                                <h4 className="text-lg font-semibold text-[#F1F1F1]">
+                                                    {currentMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                                                </h4>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={previousMonth}
+                                                        className="p-2 rounded-lg bg-[#1E1E1E] text-[#EAEAEA] hover:bg-[#2D2D2D] transition-all duration-200"
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                                        </svg>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setCurrentMonth(new Date())}
+                                                        className="p-2 rounded-lg bg-[#1E1E1E] text-[#EAEAEA] hover:bg-[#2D2D2D] transition-all duration-200"
+                                                    >
+                                                        This Month
+                                                    </button>
+                                                    <button
+                                                        onClick={nextMonth}
+                                                        className="p-2 rounded-lg bg-[#1E1E1E] text-[#EAEAEA] hover:bg-[#2D2D2D] transition-all duration-200"
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Calendar Grid */}
+                                            <div className="grid grid-cols-7 gap-2">
+                                                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                                                    <div key={day} className="text-center text-sm font-semibold text-[#888] py-2">
+                                                        {day}
+                                                    </div>
+                                                ))}
+
+                                                {/* Empty cells for the start of the month */}
+                                                {Array.from({ length: startingDayOfWeek }).map((_, i) => (
+                                                    <div key={`empty-${i}`} />
+                                                ))}
+
+                                                {/* Day cells */}
+                                                {Array.from({ length: daysInMonth }).map((_, i) => {
+                                                    const day = i + 1;
+                                                    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                                            const attendance = attendanceHistory.attendance.find(a => a.date.startsWith(dateStr));
+                                            const isTodayDate = isToday(day);
+
+                                            // Determine the status color
+                                            let highlightClass = "bg-[#1E1E1E]";
+                                            let textClass = "text-[#888]";
+                                            let titleText = `No data: ${dateStr}`;
+                                            if (attendance) {
+                                                if (attendance.status === "present") {
+                                                    highlightClass = "bg-green-500";
+                                                    textClass = "text-white font-bold";
+                                                    titleText = `Present: ${dateStr}`;
+                                                } else if (attendance.status === "absent") {
+                                                    highlightClass = "bg-red-500";
+                                                    textClass = "text-white font-bold";
+                                                    titleText = `Absent: ${dateStr}`;
+                                                }
+                                            }
+
+                                            return (
+                                                <div
+                                                    key={day}
+                                                    className={`relative aspect-square flex items-center justify-center rounded-lg transition-all duration-200 ${highlightClass} ${isTodayDate
+                                                        ? "ring-2 ring-blue-500 ring-opacity-70 shadow-lg shadow-blue-500/30"
+                                                        : ""
+                                                        }`}
+                                                    title={titleText}
+                                                >
+                                                    <span className={`text-sm ${textClass}`}>{day}</span>
+                                                </div>
+                                            );
+                                        })}
+                                            </div>
+
+                                            {/* Legend */}
+                                            <div className="flex justify-center gap-6 mt-6 pt-4 border-t border-[#2D2D2D]">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                                                    <span className="text-sm text-[#EAEAEA]">Present</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                                                    <span className="text-sm text-[#EAEAEA]">Absent</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-3 h-3 rounded-full bg-[#1E1E1E]"></div>
+                                                    <span className="text-sm text-[#EAEAEA]">No Data</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                         </div>
                     )}
                 </div>

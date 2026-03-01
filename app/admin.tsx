@@ -343,14 +343,6 @@ export default function AdminDashboard({
                             {school.name} - Manage classes, students, and attendance
                         </p>
                     </div>
-
-                    <ShinyButton
-                        onClick={() => router.push('/')}
-                        variant="red"
-                        className="px-6 py-3 text-lg"
-                    >
-                        Sign Out
-                    </ShinyButton>
                 </div>
 
                 {/* Tab Navigation */}
