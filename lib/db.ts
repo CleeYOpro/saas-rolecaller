@@ -2,8 +2,12 @@ import { Pool } from 'pg';
 
 let dbUrl = process.env.DATABASE_URL;
 
+// 1. Strip out single quotes or double quotes if they were accidentally added in Vercel.
+if (dbUrl) {
+    dbUrl = dbUrl.replace(/^['"]|['"]$/g, '');
+}
+
 // Robust fallback against terminal/turbopack cache issues overriding or dropping the DATABASE_URL.
-// The string 'base' comes from local dev overrides / cache that pg resolves as a literal hostname.
 if (!dbUrl || dbUrl === 'base' || !dbUrl.startsWith('postgres')) {
     try {
         const fs = require('fs');
@@ -20,8 +24,12 @@ if (!dbUrl || dbUrl === 'base' || !dbUrl.startsWith('postgres')) {
             console.warn("==> No local .env file found. If you are on Vercel, ensure DATABASE_URL is set in your Project Settings > Environment Variables!");
         }
     } catch (e) {
-        console.warn("==> Could not read fallback .env. If you are on Vercel, ensure DATABASE_URL is set in your Project Settings > Environment Variables!", e);
+        console.warn("==> Could not read fallback .env", e);
     }
+}
+
+if (!dbUrl || dbUrl === 'base' || !dbUrl.startsWith('postgres')) {
+    throw new Error("CRITICAL STARTUP ERROR: DATABASE_URL is not properly configured. It must start with 'postgres://' or 'postgresql://'. Go to your Vercel Project Settings > Environment Variables, verify it, and hit Redeploy.");
 }
 
 const pool = new Pool({
