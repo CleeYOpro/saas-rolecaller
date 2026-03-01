@@ -16,9 +16,11 @@ if (!dbUrl || dbUrl === 'base' || !dbUrl.startsWith('postgres')) {
                 dbUrl = match[1];
                 console.log("==> Extracted fallback DATABASE_URL from .env");
             }
+        } else {
+            console.warn("==> No local .env file found. If you are on Vercel, ensure DATABASE_URL is set in your Project Settings > Environment Variables!");
         }
     } catch (e) {
-        console.warn("Could not read fallback .env", e);
+        console.warn("==> Could not read fallback .env. If you are on Vercel, ensure DATABASE_URL is set in your Project Settings > Environment Variables!", e);
     }
 }
 
