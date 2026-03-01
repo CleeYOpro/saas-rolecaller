@@ -29,7 +29,7 @@ export function SocialProof() {
               Serving the most forgotten classrooms of India
               <br />
               <span className="text-lg text-muted-foreground leading-relaxed">
-                with the Friends Missionary Prayer Band (FMPB)
+                and beyond!
               </span>
             </p>
           </motion.div>

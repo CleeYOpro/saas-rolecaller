@@ -20,10 +20,10 @@ export function FeaturesSection() {
       icon: Heart,
       title: "Free & Open Access",
       description:
-        "Completely free for partner schools. Data can be easily accesible via director login and can be downloaded as excel.",
+        "Completely free for partner schools. Data can be easily accesible via director login and can be downloaded as Excel files.",
       image: "/WhatsApp Image 2026-02-02 at 9.57.09 PM.jpeg",
       alt: "Students in school uniforms smiling in classroom",
-      schoolname: "In partnership with Friends Missionary Prayer Band",
+      schoolname: "Data stored in ",
     },
     {
       icon: Users,
