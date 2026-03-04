@@ -95,6 +95,9 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: 1.1.6
         version: 1.1.6(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      '@typeform/embed-react':
+        specifier: ^5.0.0
+        version: 5.0.0(react@19.2.0)
       '@vercel/analytics':
         specifier: 1.3.1
         version: 1.3.1(next@16.0.7(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react@19.2.0)
@@ -1230,6 +1233,16 @@ packages:
   '@tailwindcss/postcss@4.1.9':
     resolution: {integrity: sha512-v3DKzHibZO8ioVDmuVHCW1PR0XSM7nS40EjZFJEA1xPuvTuQPaR5flE1LyikU3hu2u1KNWBtEaSe8qsQjX3tyg==}
 
+  '@typeform/embed-react@5.0.0':
+    resolution: {integrity: sha512-HlBxVJBEtf15Mjp6bYnoO91z2SnOLkqkJCflKsuUEqJSauf1RDSTl0X00AJqOsb+SQ8C7kWkGHceXrlEUii4mg==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      react: '>=16.8.0'
+
+  '@typeform/embed@6.0.0':
+    resolution: {integrity: sha512-ShV9P8/I9Cp24vJEDyb1huWAbPE4T6d7sE6jux03YPH67RzOE5cUrEuZ4vq0rpiGbWvpmhRLSZKspBC8SstN4Q==}
+    engines: {node: '>=18'}
+
   '@types/bcryptjs@3.0.0':
     resolution: {integrity: sha512-WRZOuCuaz8UcZZE4R5HXTco2goQSI2XxjGY3hbM/xDvwmqFWd4ivooImsMx65OKM6CtNKbnZ5YL+YwAwK7c1dg==}
     deprecated: This is a stub types definition. bcryptjs provides its own type definitions, so you do not need this installed.
@@ -1527,6 +1540,9 @@ packages:
   fast-csv@4.3.6:
     resolution: {integrity: sha512-2RNSpuwwsJGP0frGsOmTb9oUF+VkFSM4SyLTDgwf2ciHWTarN0lQTC+F2f/t5J9QjW+c65VFIAAu85GsvMIusw==}
     engines: {node: '>=10.0.0'}
+
+  fast-deep-equal@3.1.3:
+    resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
 
   fast-equals@5.3.3:
     resolution: {integrity: sha512-/boTcHZeIAQ2r/tL11voclBHDeP9WPxLt+tyAbVSyyXuUFyh0Tne7gJZTqGbxnvj79TjLdCXLOY7UIPhyG5MTw==}
@@ -3169,6 +3185,14 @@ snapshots:
       postcss: 8.5.0
       tailwindcss: 4.1.9
 
+  '@typeform/embed-react@5.0.0(react@19.2.0)':
+    dependencies:
+      '@typeform/embed': 6.0.0
+      fast-deep-equal: 3.1.3
+      react: 19.2.0
+
+  '@typeform/embed@6.0.0': {}
+
   '@types/bcryptjs@3.0.0':
     dependencies:
       bcryptjs: 3.0.3
@@ -3481,6 +3505,8 @@ snapshots:
     dependencies:
       '@fast-csv/format': 4.3.5
       '@fast-csv/parse': 4.3.6
+
+  fast-deep-equal@3.1.3: {}
 
   fast-equals@5.3.3: {}
 

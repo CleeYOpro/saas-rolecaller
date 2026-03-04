@@ -61,8 +61,16 @@ function SchoolCard({ school, onDrillDown }: { school: SchoolDashboardData; onDr
     return currentDate.setHours(0,0,0,0) === today.setHours(0,0,0,0);
   };
 
-  const offsetDate = new Date(currentDate.getTime() - (currentDate.getTimezoneOffset() * 60000));
-  const dateStr = offsetDate.toISOString().split("T")[0];
+  // Format date consistently with backend date format (YYYY-MM-DD)
+  const formatDate = (date: Date): string => {
+    const d = new Date(date);
+    const month = `${d.getMonth() + 1}`.padStart(2, '0');
+    const day = `${d.getDate()}`.padStart(2, '0');
+    const year = d.getFullYear();
+    return `${year}-${month}-${day}`;
+  };
+
+  const dateStr = formatDate(currentDate);
 
   const dayData = school.trend.find((t) => t.date === dateStr);
   const hasData = dayData && dayData.total > 0;

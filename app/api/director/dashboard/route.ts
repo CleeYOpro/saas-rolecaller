@@ -43,7 +43,9 @@ export async function GET() {
 
     const attendances = attendanceDataResult.rows;
 
-    const todayStr = new Date().toISOString().split('T')[0];
+    // Format today's date consistently with how dates are stored in the DB
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
 
     let globalPresent = 0;
     let globalAbsent = 0;
@@ -51,35 +53,32 @@ export async function GET() {
     const enrichedSchools = schools.map(school => {
       const schoolAttendances = attendances.filter(a => a.schoolId === school.id);
       
-      const todayAttendances = schoolAttendances.filter(a => {
-        // Handle timezone difference on dates and postgres return format formatting
+      // Group by date for the 7-day trend
+      const trendMap: Record<string, { present: number, absent: number, total: number }> = {};
+      schoolAttendances.forEach(a => {
+        // Format the date to YYYY-MM-DD to match the format from the database
         const dateStr = new Date(a.date).toISOString().split('T')[0];
-        return dateStr === todayStr;
+        if (!trendMap[dateStr]) trendMap[dateStr] = { present: 0, absent: 0, total: 0 };
+        trendMap[dateStr].total += 1;
+        if (a.status === 'present') trendMap[dateStr].present += 1;
+        if (a.status === 'absent') trendMap[dateStr].absent += 1;
       });
 
-      const todayPresent = todayAttendances.filter(a => a.status === 'present').length;
-      const todayTotal = todayAttendances.filter(a => a.status === 'present' || a.status === 'absent').length; // Ignore 'late' if it exists or treat as present. Let's count them all.
-      const todayAbsent = todayAttendances.filter(a => a.status === 'absent').length;
+      // Get today's attendance for this school
+      const todayData = trendMap[todayStr];
+      const todayPresent = todayData?.present || 0;
+      const todayAbsent = todayData?.absent || 0;
+      const todayTotal = todayData?.total || 0;
+      const todayPercentage = todayTotal > 0 ? (todayPresent / todayTotal) * 100 : 0;
 
       globalPresent += todayPresent;
       globalAbsent += todayAbsent;
-
-      const todayPercentage = todayTotal > 0 ? (todayPresent / todayTotal) * 100 : 0;
-
-      // Group by date for the 7-day trend
-      const trendMap: Record<string, { present: number, total: number }> = {};
-      schoolAttendances.forEach(a => {
-        const dateStr = new Date(a.date).toISOString().split('T')[0];
-        if (!trendMap[dateStr]) trendMap[dateStr] = { present: 0, total: 0 };
-        trendMap[dateStr].total += 1;
-        if (a.status === 'present') trendMap[dateStr].present += 1;
-      });
 
       const trend = Object.entries(trendMap).map(([date, data]) => ({
         date,
         percentage: data.total > 0 ? (data.present / data.total) * 100 : 0,
         present: data.present,
-        absent: data.total - data.present,
+        absent: data.absent,
         total: data.total
       })).sort((a, b) => a.date.localeCompare(b.date));
 

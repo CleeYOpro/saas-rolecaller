@@ -31,7 +31,9 @@ export function Navigation() {
             <ShinyButton variant="secondary" className="hidden sm:inline-flex">
               <Link href="/sign-in">Admin Sign In</Link>
             </ShinyButton>
-            <ShinyButton><Link href="#dgfd">Add Your School</Link></ShinyButton>
+            <Link href="/form">
+              <ShinyButton>Add Your School</ShinyButton>
+            </Link>
           </div>
         </div>
       </div>
