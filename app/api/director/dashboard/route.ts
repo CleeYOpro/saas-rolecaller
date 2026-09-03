@@ -31,9 +31,20 @@ export async function GET() {
 
     const schoolIds = schools.map(s => s.id);
 
+    // Fetch classes so we can split "TEACHERS ATTENDANCE" classes from regular student classes
+    const classesResult = await pool.query(
+      `SELECT id, school_id as "schoolId", name FROM classes WHERE school_id = ANY($1)`,
+      [schoolIds]
+    );
+    const teacherClassIds = new Set(
+      classesResult.rows
+        .filter(c => c.name.trim().toUpperCase() === 'TEACHERS ATTENDANCE')
+        .map(c => c.id)
+    );
+
     // Fetch attendance for these schools for today and the last 7 days
     const attendanceDataResult = await pool.query(
-      `SELECT a.status, a.date, c.school_id as "schoolId"
+      `SELECT a.status, a.date::text as date, c.school_id as "schoolId", c.id as "classId"
        FROM attendance a
        JOIN classes c ON a.class_id = c.id
        WHERE c.school_id = ANY($1)
@@ -43,36 +54,28 @@ export async function GET() {
 
     const attendances = attendanceDataResult.rows;
 
-    // Format today's date consistently with how dates are stored in the DB
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+    // Get today's date from Postgres directly to avoid JS timezone conversion mismatches
+    const todayResult = await pool.query('SELECT CURRENT_DATE::text as today');
+    const todayStr = todayResult.rows[0].today;
 
     let globalPresent = 0;
     let globalAbsent = 0;
 
-    const enrichedSchools = schools.map(school => {
-      const schoolAttendances = attendances.filter(a => a.schoolId === school.id);
-      
-      // Group by date for the 7-day trend
+    const buildTrend = (rows: typeof attendances) => {
       const trendMap: Record<string, { present: number, absent: number, total: number }> = {};
-      schoolAttendances.forEach(a => {
-        // Format the date to YYYY-MM-DD to match the format from the database
-        const dateStr = new Date(a.date).toISOString().split('T')[0];
+      rows.forEach(a => {
+        const dateStr = a.date;
         if (!trendMap[dateStr]) trendMap[dateStr] = { present: 0, absent: 0, total: 0 };
         trendMap[dateStr].total += 1;
         if (a.status === 'present') trendMap[dateStr].present += 1;
         if (a.status === 'absent') trendMap[dateStr].absent += 1;
       });
 
-      // Get today's attendance for this school
       const todayData = trendMap[todayStr];
       const todayPresent = todayData?.present || 0;
       const todayAbsent = todayData?.absent || 0;
       const todayTotal = todayData?.total || 0;
       const todayPercentage = todayTotal > 0 ? (todayPresent / todayTotal) * 100 : 0;
-
-      globalPresent += todayPresent;
-      globalAbsent += todayAbsent;
 
       const trend = Object.entries(trendMap).map(([date, data]) => ({
         date,
@@ -82,10 +85,30 @@ export async function GET() {
         total: data.total
       })).sort((a, b) => a.date.localeCompare(b.date));
 
+      return { todayPresent, todayAbsent, todayPercentage, trend };
+    };
+
+    const enrichedSchools = schools.map(school => {
+      const schoolAttendances = attendances.filter(a => a.schoolId === school.id);
+      const studentAttendances = schoolAttendances.filter(a => !teacherClassIds.has(a.classId));
+      const teacherAttendances = schoolAttendances.filter(a => teacherClassIds.has(a.classId));
+
+      const students = buildTrend(studentAttendances);
+      const teachers = buildTrend(teacherAttendances);
+      const hasTeacherClass = classesResult.rows.some(
+        c => c.schoolId === school.id && teacherClassIds.has(c.id)
+      );
+
+      globalPresent += students.todayPresent;
+      globalAbsent += students.todayAbsent;
+
       return {
         ...school,
-        todayPercentage,
-        trend
+        todayPercentage: students.todayPercentage,
+        trend: students.trend,
+        hasTeacherClass,
+        teacherTodayPercentage: teachers.todayPercentage,
+        teacherTrend: teachers.trend
       };
     });
 

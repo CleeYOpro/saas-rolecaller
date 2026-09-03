@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const schoolId = searchParams.get('schoolId');
 
-    let query = 'SELECT id, student_id as "studentId", status, date, class_id as "classId" FROM attendance';
+    let query = 'SELECT id, student_id as "studentId", status, date::text as date, class_id as "classId" FROM attendance';
     let params: any[] = [];
 
     const accessError = await verifyDirectorAccess(schoolId);
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     const { studentId, status, date, classId } = await request.json();
 
     const result = await pool.query(
-      'INSERT INTO attendance (student_id, status, date, class_id) VALUES ($1, $2, $3, $4) RETURNING id, student_id as "studentId", status, date, class_id as "classId"',
+      'INSERT INTO attendance (student_id, status, date, class_id) VALUES ($1, $2, $3, $4) RETURNING id, student_id as "studentId", status, date::text as date, class_id as "classId"',
       [studentId, status, date, classId]
     );
 
@@ -72,7 +72,7 @@ export async function PUT(request: Request) {
     const { id, studentId, status, date, classId } = await request.json();
 
     const result = await pool.query(
-      'UPDATE attendance SET student_id = $1, status = $2, date = $3, class_id = $4 WHERE id = $5 RETURNING id, student_id as "studentId", status, date, class_id as "classId"',
+      'UPDATE attendance SET student_id = $1, status = $2, date = $3, class_id = $4 WHERE id = $5 RETURNING id, student_id as "studentId", status, date::text as date, class_id as "classId"',
       [studentId, status, date, classId, id]
     );
 

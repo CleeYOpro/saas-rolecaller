@@ -8,6 +8,10 @@ interface StudentSearchOverviewProps {
     classes: Class[];
     schoolId: string;
     onStudentUpdate: (updatedStudent: Student) => void;
+    title?: string;
+    searchLabel?: string;
+    entityLabel?: string;
+    showClassFilter?: boolean;
 }
 
 interface AttendanceRecord {
@@ -34,6 +38,10 @@ export default function StudentSearchOverview({
     classes,
     schoolId,
     onStudentUpdate,
+    title = "Student Search & Attendance Overview",
+    searchLabel = "Search Student",
+    entityLabel = "student",
+    showClassFilter = true,
 }: StudentSearchOverviewProps) {
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedClassFilter, setSelectedClassFilter] = useState<string>("");
@@ -208,7 +216,7 @@ export default function StudentSearchOverview({
 
     return (
         <div className="bg-[#1E1E1E] rounded-xl p-6 border border-[#2D2D2D] mb-8">
-            <h2 className="text-2xl font-bold text-[#F1F1F1] mb-6">Student Search & Attendance Overview</h2>
+            <h2 className="text-2xl font-bold text-[#F1F1F1] mb-6">{title}</h2>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Panel: Search */}
@@ -217,7 +225,7 @@ export default function StudentSearchOverview({
                         {/* Search Input */}
                         <div>
                             <label className="block text-sm font-medium text-[#EAEAEA] mb-2">
-                                Search Student
+                                {searchLabel}
                             </label>
                             <input
                                 type="text"
@@ -229,34 +237,36 @@ export default function StudentSearchOverview({
                         </div>
 
                         {/* Class Filter */}
-                        <div>
-                            <label className="block text-sm font-medium text-[#EAEAEA] mb-2">
-                                Filter by Class
-                            </label>
-                            <select
-                                value={selectedClassFilter}
-                                onChange={(e) => setSelectedClassFilter(e.target.value)}
-                                className="w-full px-4 py-3 rounded-lg bg-[#121212] text-white border border-[#333] focus:border-[#3A86FF] focus:ring-2 focus:ring-[#3A86FF] focus:outline-none transition-all duration-200"
-                            >
-                                <option value="">All Classes</option>
-                                {classes.map((cls) => (
-                                    <option key={cls.id} value={cls.id}>
-                                        {cls.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        {showClassFilter && (
+                            <div>
+                                <label className="block text-sm font-medium text-[#EAEAEA] mb-2">
+                                    Filter by Class
+                                </label>
+                                <select
+                                    value={selectedClassFilter}
+                                    onChange={(e) => setSelectedClassFilter(e.target.value)}
+                                    className="w-full px-4 py-3 rounded-lg bg-[#121212] text-white border border-[#333] focus:border-[#3A86FF] focus:ring-2 focus:ring-[#3A86FF] focus:outline-none transition-all duration-200"
+                                >
+                                    <option value="">All Classes</option>
+                                    {classes.map((cls) => (
+                                        <option key={cls.id} value={cls.id}>
+                                            {cls.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
 
                         {/* Search Results */}
                         <div className="mt-4">
                             <div className="text-sm text-[#EAEAEA] mb-2">
-                                {filteredStudents.length} student{filteredStudents.length !== 1 ? "s" : ""} found
+                                {filteredStudents.length} {entityLabel}{filteredStudents.length !== 1 ? "s" : ""} found
                             </div>
                             <div className="max-h-96 overflow-y-auto space-y-2 custom-scrollbar">
                                 {filteredStudents.length === 0 ? (
                                     <div className="text-center py-8">
                                         <div className="text-4xl mb-2">🔍</div>
-                                        <p className="text-[#EAEAEA]">No students found</p>
+                                        <p className="text-[#EAEAEA]">No {entityLabel}s found</p>
                                         <p className="text-sm text-[#888] mt-1">Try adjusting your search</p>
                                     </div>
                                 ) : (
@@ -290,8 +300,8 @@ export default function StudentSearchOverview({
                         <div className="flex items-center justify-center h-full min-h-[400px] text-center">
                             <div>
                                 <div className="text-6xl mb-4">𖨆</div>
-                                <p className="text-xl text-[#EAEAEA]">Select a student to view details</p>
-                                <p className="text-sm text-[#888] mt-2">Search and click on a student from the list</p>
+                                <p className="text-xl text-[#EAEAEA]">Select a {entityLabel} to view details</p>
+                                <p className="text-sm text-[#888] mt-2">Search and click on a {entityLabel} from the list</p>
                             </div>
                         </div>
                     ) : loading ? (
@@ -487,7 +497,7 @@ export default function StudentSearchOverview({
             {isEditModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-[#1E1E1E] rounded-xl p-6 max-w-md w-full border border-[#2D2D2D] animate-fade-in">
-                        <h3 className="text-xl font-bold text-[#F1F1F1] mb-4">Edit Student Details</h3>
+                        <h3 className="text-xl font-bold text-[#F1F1F1] mb-4">Edit {entityLabel.charAt(0).toUpperCase() + entityLabel.slice(1)} Details</h3>
 
                         <div className="space-y-4">
                             <div>

@@ -5,6 +5,220 @@ import type { School, Class, AttendanceMap, ClassAssignments, Student, Attendanc
 import StudentSearchOverview from "./StudentSearchOverview";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { useRouter } from 'next/navigation';
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+
+function formatDateStr(date: Date): string {
+    const d = new Date(date);
+    const month = `${d.getMonth() + 1}`.padStart(2, '0');
+    const day = `${d.getDate()}`.padStart(2, '0');
+    const year = d.getFullYear();
+    return `${year}-${month}-${day}`;
+}
+
+function DateNav({ date, onChange }: { date: Date; onChange: (date: Date) => void }) {
+    const isToday = formatDateStr(date) === formatDateStr(new Date());
+
+    const handlePrev = () => {
+        const nextDate = new Date(date);
+        nextDate.setDate(nextDate.getDate() - 1);
+        onChange(nextDate);
+    };
+
+    const handleNext = () => {
+        const nextDate = new Date(date);
+        nextDate.setDate(nextDate.getDate() + 1);
+        const today = new Date();
+        if (nextDate.setHours(0, 0, 0, 0) <= today.setHours(0, 0, 0, 0)) {
+            onChange(nextDate);
+        }
+    };
+
+    return (
+        <div className="flex items-center gap-3">
+            <button
+                onClick={handlePrev}
+                className="text-[#EAEAEA] hover:text-white transition-opacity"
+                aria-label="Previous day"
+            >
+                <ArrowLeft size={20} strokeWidth={3} />
+            </button>
+            <span className="text-[#F1F1F1] font-medium min-w-[130px] text-center">
+                {date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+            </span>
+            <button
+                onClick={handleNext}
+                disabled={isToday}
+                className={`transition-opacity ${isToday ? "text-[#EAEAEA]/30 cursor-not-allowed" : "text-[#EAEAEA] hover:text-white"}`}
+                aria-label="Next day"
+            >
+                <ArrowRight size={20} strokeWidth={3} />
+            </button>
+        </div>
+    );
+}
+
+type Granularity = 'week' | 'month';
+
+// Key of the Monday that starts the week containing this date
+function getWeekKey(dateStr: string): string {
+    const d = new Date(`${dateStr}T00:00:00`);
+    const day = d.getDay();
+    const diff = (day === 0 ? -6 : 1) - day;
+    d.setDate(d.getDate() + diff);
+    return formatDateStr(d);
+}
+
+function getMonthKey(dateStr: string): string {
+    return dateStr.slice(0, 7);
+}
+
+function formatWeekLabel(weekKey: string): string {
+    const d = new Date(`${weekKey}T00:00:00`);
+    return `Wk of ${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+}
+
+function formatMonthLabel(monthKey: string): string {
+    const d = new Date(`${monthKey}-01T00:00:00`);
+    return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+}
+
+const selectClassName = "px-4 py-1.5 rounded-lg text-sm font-semibold bg-[#121212] text-[#EAEAEA] border border-[#2D2D2D] focus:border-[#3A86FF] focus:outline-none";
+
+function AttendanceTrendChart({
+    attendance,
+    classes,
+    teacherClassId,
+}: {
+    attendance: AttendanceMap;
+    classes: Class[];
+    teacherClassId?: string;
+}) {
+    const [granularity, setGranularity] = useState<Granularity>('week');
+    const [group, setGroup] = useState<'students' | 'teachers'>('students');
+    const [classFilter, setClassFilter] = useState<string>('all');
+
+    const studentClasses = useMemo(
+        () => classes.filter((c) => c.id !== teacherClassId),
+        [classes, teacherClassId]
+    );
+
+    const relevantClasses = useMemo(() => {
+        if (group === 'teachers') {
+            return teacherClassId ? classes.filter((c) => c.id === teacherClassId) : [];
+        }
+        return classFilter === 'all' ? studentClasses : studentClasses.filter((c) => c.id === classFilter);
+    }, [group, classFilter, studentClasses, classes, teacherClassId]);
+
+    const trendData = useMemo(() => {
+        const buckets: Record<string, { present: number; absent: number }> = {};
+
+        relevantClasses.forEach((cls) => {
+            const dates = attendance[cls.id] ?? {};
+            Object.entries(dates).forEach(([date, studentMap]) => {
+                const key = granularity === 'week' ? getWeekKey(date) : getMonthKey(date);
+                if (!buckets[key]) buckets[key] = { present: 0, absent: 0 };
+                Object.values(studentMap).forEach((status) => {
+                    if (status === 'present' || status === 'late') buckets[key].present += 1;
+                    else if (status === 'absent') buckets[key].absent += 1;
+                });
+            });
+        });
+
+        return Object.entries(buckets)
+            .map(([key, v]) => {
+                const total = v.present + v.absent;
+                const presentPct = total > 0 ? Math.round((v.present / total) * 100) : 0;
+                return {
+                    key,
+                    label: granularity === 'week' ? formatWeekLabel(key) : formatMonthLabel(key),
+                    presentPct,
+                    absentPct: total > 0 ? 100 - presentPct : 0,
+                };
+            })
+            .sort((a, b) => a.key.localeCompare(b.key))
+            .slice(-12);
+    }, [attendance, relevantClasses, granularity]);
+
+    return (
+        <div>
+            <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
+                <div className="flex flex-wrap gap-3">
+                    <select
+                        value={group}
+                        onChange={(e) => setGroup(e.target.value as 'students' | 'teachers')}
+                        className={selectClassName}
+                    >
+                        <option value="students">Students</option>
+                        <option value="teachers" disabled={!teacherClassId}>Teachers</option>
+                    </select>
+
+                    {group === 'students' && (
+                        <select
+                            value={classFilter}
+                            onChange={(e) => setClassFilter(e.target.value)}
+                            className={selectClassName}
+                        >
+                            <option value="all">All Students</option>
+                            {studentClasses.map((cls) => (
+                                <option key={cls.id} value={cls.id}>{cls.name}</option>
+                            ))}
+                        </select>
+                    )}
+                </div>
+
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setGranularity('week')}
+                        className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors duration-200 ${granularity === 'week' ? 'bg-[#3A86FF] text-white' : 'bg-[#121212] text-[#EAEAEA] border border-[#2D2D2D]'}`}
+                    >
+                        Weekly
+                    </button>
+                    <button
+                        onClick={() => setGranularity('month')}
+                        className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors duration-200 ${granularity === 'month' ? 'bg-[#3A86FF] text-white' : 'bg-[#121212] text-[#EAEAEA] border border-[#2D2D2D]'}`}
+                    >
+                        Monthly
+                    </button>
+                </div>
+            </div>
+
+            {trendData.length === 0 ? (
+                <div className="h-[280px] flex items-center justify-center text-[#888]">
+                    No attendance data yet.
+                </div>
+            ) : (
+                <div className="h-[280px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={trendData} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#2D2D2D" vertical={false} />
+                            <XAxis dataKey="label" stroke="#888" tick={{ fill: "#EAEAEA", fontSize: 12 }} />
+                            <YAxis domain={[0, 100]} stroke="#888" tick={{ fill: "#EAEAEA", fontSize: 12 }} unit="%" />
+                            <Tooltip
+                                content={({ active, payload }) => {
+                                    if (active && payload && payload.length) {
+                                        const d = payload[0].payload;
+                                        return (
+                                            <div className="bg-[#1E1E1E] border border-[#333] rounded-lg px-3 py-2 text-sm shadow-xl">
+                                                <div className="text-white font-semibold mb-1">{d.label}</div>
+                                                <div className="text-[#4CAF50]">Present: {d.presentPct}%</div>
+                                                <div className="text-[#D32F2F]">Absent: {d.absentPct}%</div>
+                                            </div>
+                                        );
+                                    }
+                                    return null;
+                                }}
+                                cursor={{ fill: "rgba(255,255,255,0.05)" }}
+                            />
+                            <Bar dataKey="presentPct" stackId="a" fill="#4CAF50" name="Present" />
+                            <Bar dataKey="absentPct" stackId="a" fill="#D32F2F" name="Absent" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+            )}
+        </div>
+    );
+}
 
 interface AdminProps {
     goBack: () => void;
@@ -33,8 +247,16 @@ export default function AdminDashboard({
 }: AdminProps) {
     const [activeTab, setActiveTab] = useState<'view' | 'manage'>('view');
     const [manageSubTab, setManageSubTab] = useState<'classes' | 'students'>('classes');
-    const today = new Date().toISOString().slice(0, 10);
     const router = useRouter();
+
+    // Date navigation for the daily summary and teachers attendance cards
+    const [summaryDate, setSummaryDate] = useState(new Date());
+    const [teacherDate, setTeacherDate] = useState(new Date());
+    const summaryDateStr = formatDateStr(summaryDate);
+    const teacherDateStr = formatDateStr(teacherDate);
+    const isSummaryToday = summaryDateStr === formatDateStr(new Date());
+    const isTeacherToday = teacherDateStr === formatDateStr(new Date());
+
     // Daily attendance summary
     const dailyAttendanceSummary = useMemo(() => {
         const summary: Record<AttendanceStatus, number> = {
@@ -43,7 +265,8 @@ export default function AdminDashboard({
             late: 0,
         };
         classes.forEach((cls) => {
-            const map = attendance[cls.id]?.[today] ?? {};
+            if (cls.name.trim().toUpperCase() === "TEACHERS ATTENDANCE") return;
+            const map = attendance[cls.id]?.[summaryDateStr] ?? {};
             Object.values(map).forEach((status) => {
                 if (status === "present" || status === "absent" || status === "late") {
                     summary[status] += 1;
@@ -51,7 +274,32 @@ export default function AdminDashboard({
             });
         });
         return summary;
-    }, [attendance, classes, today]);
+    }, [attendance, classes, summaryDateStr]);
+
+    // Teachers attendance (reuses the class/student/attendance schema, with a class named "TEACHERS ATTENDANCE")
+    const teacherClass = classes.find((c) => c.name.trim().toUpperCase() === "TEACHERS ATTENDANCE");
+    const teacherStudents = useMemo(
+        () => (teacherClass ? students.filter((s) => s.classId === teacherClass.id) : []),
+        [students, teacherClass]
+    );
+
+    const teacherDayStatus = useMemo(() => {
+        const map = teacherClass ? attendance[teacherClass.id]?.[teacherDateStr] ?? {} : {};
+        return teacherStudents.map((t) => ({ name: t.name, status: map[t.id] ?? "unmarked" }));
+    }, [attendance, teacherClass, teacherStudents, teacherDateStr]);
+
+    const teacherAttendanceSummary = useMemo(() => {
+        const summary: Record<AttendanceStatus, number> = { present: 0, absent: 0, late: 0 };
+        teacherDayStatus.forEach(({ status }) => {
+            if (status === "present" || status === "absent" || status === "late") {
+                summary[status] += 1;
+            }
+        });
+        return summary;
+    }, [teacherDayStatus]);
+
+    const [showTeacherCalendar, setShowTeacherCalendar] = useState(false);
+    const [showStudentSearch, setShowStudentSearch] = useState(false);
 
     // Class management state
     const [newClassName, setNewClassName] = useState("");
@@ -330,6 +578,24 @@ export default function AdminDashboard({
         }
     };
 
+    // Shared handler for updates made from either the student or teacher search/overview modal
+    const handlePersonUpdate = (updatedPerson: Student) => {
+        setStudents((prev) => prev.map((s) => s.id === updatedPerson.id ? updatedPerson : s));
+        setAssignments((prev) => {
+            const newAssignments = { ...prev };
+            Object.keys(newAssignments).forEach((classId) => {
+                newAssignments[classId] = newAssignments[classId].filter((sid) => sid !== updatedPerson.id);
+            });
+            if (updatedPerson.classId) {
+                if (!newAssignments[updatedPerson.classId]) {
+                    newAssignments[updatedPerson.classId] = [];
+                }
+                newAssignments[updatedPerson.classId].push(updatedPerson.id);
+            }
+            return newAssignments;
+        });
+    };
+
     return (
         <div className="min-h-screen bg-[#121212] p-6 md:p-12 font-sans text-[#EAEAEA]">
             <div className="max-w-6xl mx-auto">
@@ -372,7 +638,12 @@ export default function AdminDashboard({
                     <div className="space-y-8">
                         {/* Daily Summary */}
                         <div className="bg-[#1E1E1E] rounded-xl p-6 border border-[#2D2D2D]">
-                            <h2 className="text-2xl font-bold text-[#F1F1F1] mb-4">Today&apos;s Attendance Summary</h2>
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                                <h2 className="text-2xl font-bold text-[#F1F1F1]">
+                                    {isSummaryToday ? "Today's Attendance Summary" : "Attendance Summary"}
+                                </h2>
+                                <DateNav date={summaryDate} onChange={setSummaryDate} />
+                            </div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="bg-[#121212] p-6 rounded-lg border border-[#2D2D2D]">
                                     <div className="text-[#4CAF50] text-4xl font-bold">{dailyAttendanceSummary.present}</div>
@@ -383,6 +654,46 @@ export default function AdminDashboard({
                                     <div className="text-[#EAEAEA] mt-2">Absent</div>
                                 </div>
                             </div>
+
+                            <ShinyButton onClick={() => setShowStudentSearch(true)} className="w-full py-2.5 mt-4">
+                                View Student Attendance
+                            </ShinyButton>
+                        </div>
+
+                        {/* Teachers Attendance */}
+                        {teacherClass && (
+                            <div className="bg-[#1E1E1E] rounded-xl p-6 border border-[#2D2D2D]">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                                    <h2 className="text-2xl font-bold text-[#F1F1F1]">
+                                        {isTeacherToday ? "Today's Teachers Attendance" : "Teachers Attendance"}
+                                    </h2>
+                                    <DateNav date={teacherDate} onChange={setTeacherDate} />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                    <div className="bg-[#121212] p-6 rounded-lg border border-[#2D2D2D]">
+                                        <div className="text-[#4CAF50] text-4xl font-bold">{teacherAttendanceSummary.present}</div>
+                                        <div className="text-[#EAEAEA] mt-2">Present</div>
+                                    </div>
+                                    <div className="bg-[#121212] p-6 rounded-lg border border-[#2D2D2D]">
+                                        <div className="text-[#D32F2F] text-4xl font-bold">{teacherAttendanceSummary.absent}</div>
+                                        <div className="text-[#EAEAEA] mt-2">Absent</div>
+                                    </div>
+                                </div>
+
+                                <ShinyButton onClick={() => setShowTeacherCalendar(true)} className="w-full py-2.5">
+                                    View Teacher Attendance
+                                </ShinyButton>
+                            </div>
+                        )}
+
+                        {/* Attendance Trends */}
+                        <div className="bg-[#1E1E1E] rounded-xl p-6 border border-[#2D2D2D]">
+                            <h2 className="text-2xl font-bold text-[#F1F1F1] mb-4">Attendance Trends</h2>
+                            <AttendanceTrendChart
+                                attendance={attendance}
+                                classes={classes}
+                                teacherClassId={teacherClass?.id}
+                            />
                         </div>
 
                         {/* Excel Download */}
@@ -412,33 +723,6 @@ export default function AdminDashboard({
                                 📊 Download Last 30 Days Attendance
                             </ShinyButton>
                         </div>
-
-                        {/* Student Search & Attendance Overview */}
-                        <StudentSearchOverview
-                            students={students}
-                            classes={classes}
-                            schoolId={school.id}
-                            onStudentUpdate={(updatedStudent) => {
-                                setStudents((prev) => prev.map((s) => s.id === updatedStudent.id ? updatedStudent : s));
-                                // Update assignments if class changed
-                                setAssignments((prev) => {
-                                    const newAssignments = { ...prev };
-                                    // Remove from all classes
-                                    Object.keys(newAssignments).forEach((classId) => {
-                                        newAssignments[classId] = newAssignments[classId].filter((sid) => sid !== updatedStudent.id);
-                                    });
-                                    // Add to new class
-                                    if (updatedStudent.classId) {
-                                        if (!newAssignments[updatedStudent.classId]) {
-                                            newAssignments[updatedStudent.classId] = [];
-                                        }
-                                        newAssignments[updatedStudent.classId].push(updatedStudent.id);
-                                    }
-                                    return newAssignments;
-                                });
-                            }}
-                        />
-
 
                     </div>
                 )}
@@ -696,6 +980,54 @@ export default function AdminDashboard({
                     </div>
                 )}
             </div>
+
+            {/* Student Search & Attendance Overview Modal */}
+            {showStudentSearch && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-[#121212] rounded-xl border border-[#2D2D2D] max-w-6xl w-full max-h-[90vh] overflow-y-auto relative">
+                        <button
+                            onClick={() => setShowStudentSearch(false)}
+                            className="absolute top-4 right-4 text-[#EAEAEA] hover:text-white text-3xl leading-none z-10"
+                        >
+                            &times;
+                        </button>
+                        <div className="p-6">
+                            <StudentSearchOverview
+                                students={students.filter((s) => s.classId !== teacherClass?.id)}
+                                classes={classes.filter((c) => c.id !== teacherClass?.id)}
+                                schoolId={school.id}
+                                onStudentUpdate={handlePersonUpdate}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Teacher Search & Attendance Overview Modal */}
+            {showTeacherCalendar && teacherClass && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-[#121212] rounded-xl border border-[#2D2D2D] max-w-6xl w-full max-h-[90vh] overflow-y-auto relative">
+                        <button
+                            onClick={() => setShowTeacherCalendar(false)}
+                            className="absolute top-4 right-4 text-[#EAEAEA] hover:text-white text-3xl leading-none z-10"
+                        >
+                            &times;
+                        </button>
+                        <div className="p-6">
+                            <StudentSearchOverview
+                                students={teacherStudents}
+                                classes={[teacherClass]}
+                                schoolId={school.id}
+                                title="Teacher Search & Attendance Overview"
+                                searchLabel="Search Teacher"
+                                entityLabel="teacher"
+                                showClassFilter={false}
+                                onStudentUpdate={handlePersonUpdate}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

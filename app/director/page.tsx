@@ -17,6 +17,9 @@ interface SchoolDashboardData {
   name: string;
   todayPercentage: number;
   trend: TrendData[];
+  hasTeacherClass: boolean;
+  teacherTodayPercentage: number;
+  teacherTrend: TrendData[];
 }
 
 interface DashboardSummary {
@@ -34,8 +37,82 @@ interface DashboardData {
 }
 
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { ShinyButton } from "@/components/ui/shiny-button";
+
+function AttendanceGauge({ label, dayData }: { label: string; dayData?: TrendData }) {
+  const hasData = dayData && dayData.total > 0;
+
+  const pieData = hasData
+    ? [
+        { name: "Present", value: dayData.present, color: "#4ade80" }, // Green
+        { name: "Absent", value: dayData.absent, color: "#ff4d4f" }, // Red
+      ]
+    : [];
+
+  return (
+    <div className="relative w-full h-[130px] flex justify-center items-end overflow-hidden">
+      {hasData ? (
+        <>
+          <div className="absolute top-0 w-[220px] h-[220px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  startAngle={180}
+                  endAngle={0}
+                  innerRadius={68}
+                  outerRadius={100}
+                  paddingAngle={0}
+                  dataKey="value"
+                  stroke="none"
+                  isAnimationActive={false}
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} style={{ cursor: "pointer" }} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const entry = payload[0];
+                      return (
+                        <div className="bg-[#1E1E1E] border border-[#333] rounded-lg px-3 py-2 text-sm shadow-xl">
+                          <span className="font-semibold" style={{ color: entry.payload.color }}>
+                            {entry.name}
+                          </span>
+                          <span className="text-white">: {entry.value}</span>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="z-10 flex flex-col items-center mb-[-5px]">
+            <span className="text-2xl font-bold text-white mb-0 drop-shadow-md">
+              {dayData.total}
+            </span>
+            <span className="text-base font-semibold text-white/80 drop-shadow-md">
+              {label}
+            </span>
+          </div>
+        </>
+      ) : (
+        <div className="w-full h-full flex flex-col items-center justify-end pb-2">
+          <span className="text-[#999] text-base mb-2 font-medium">no data</span>
+          <span className="text-base font-semibold text-white/80 drop-shadow-md">
+            {label}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function SchoolCard({ school, onDrillDown }: { school: SchoolDashboardData; onDrillDown: () => void }) {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -72,15 +149,8 @@ function SchoolCard({ school, onDrillDown }: { school: SchoolDashboardData; onDr
 
   const dateStr = formatDate(currentDate);
 
-  const dayData = school.trend.find((t) => t.date === dateStr);
-  const hasData = dayData && dayData.total > 0;
-
-  const pieData = hasData
-    ? [
-        { name: "Present", value: dayData.present, color: "#4ade80" }, // Green
-        { name: "Absent", value: dayData.absent, color: "#ff4d4f" }, // Red
-      ]
-    : [];
+  const studentDayData = school.trend.find((t) => t.date === dateStr);
+  const teacherDayData = school.teacherTrend.find((t) => t.date === dateStr);
 
   return (
     <motion.div
@@ -113,48 +183,14 @@ function SchoolCard({ school, onDrillDown }: { school: SchoolDashboardData; onDr
         </button>
       </div>
 
-      <div className="relative w-full h-[140px] flex justify-center items-end overflow-hidden mb-6">
-        {hasData ? (
-          <>
-            <div className="absolute top-0 w-[240px] h-[240px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    startAngle={180}
-                    endAngle={0}
-                    innerRadius={75}
-                    outerRadius={110}
-                    paddingAngle={0}
-                    dataKey="value"
-                    stroke="none"
-                    isAnimationActive={false}
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="z-10 flex flex-col items-center mb-[-5px]">
-              <span className="text-2xl font-bold text-white mb-0 drop-shadow-md">
-                {dayData.total}
-              </span>
-              <span className="text-xl font-bold text-white drop-shadow-md">
-                {school.name}
-              </span>
-            </div>
-          </>
-        ) : (
-          <div className="w-full h-full flex flex-col items-center justify-end pb-2">
-            <span className="text-[#999] text-base mb-2 font-medium">no data</span>
-            <span className="text-xl font-bold text-white drop-shadow-md">
-              {school.name}
-            </span>
-          </div>
+      <div className="text-white text-xl font-bold mb-1 drop-shadow-md text-center">
+        {school.name}
+      </div>
+
+      <div className="w-full flex flex-col mb-4">
+        <AttendanceGauge label="Students" dayData={studentDayData} />
+        {school.hasTeacherClass && (
+          <AttendanceGauge label="Teachers" dayData={teacherDayData} />
         )}
       </div>
 

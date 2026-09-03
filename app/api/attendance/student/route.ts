@@ -14,7 +14,7 @@ export async function GET(request: Request) {
 
     // Get attendance records for the student
     const attendanceResult = await pool.query(
-      'SELECT id, student_id as "studentId", status, date, class_id as "classId" FROM attendance WHERE student_id = $1 ORDER BY date DESC',
+      'SELECT id, student_id as "studentId", status, date::text as date, class_id as "classId" FROM attendance WHERE student_id = $1 ORDER BY date DESC',
       [studentId]
     );
 
