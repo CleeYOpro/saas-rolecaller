@@ -39,8 +39,13 @@ async function init() {
     console.log('Created director_schools join table');
 
     // Create a mock director for testing
-    const username = 'BenAnthrayoseFMPB';
-    const password = 'maltoschools5';
+    const username = process.env.SEED_DIRECTOR_USERNAME;
+    const password = process.env.SEED_DIRECTOR_PASSWORD;
+
+    if (!username || !password) {
+      throw new Error('SEED_DIRECTOR_USERNAME and SEED_DIRECTOR_PASSWORD must be set in .env');
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const checkDirector = await client.query('SELECT id FROM directors WHERE username = $1', [username]);
@@ -52,7 +57,7 @@ async function init() {
         [username, hashedPassword]
       );
       directorId = insertResult.rows[0].id;
-      console.log('Created mock director: username "BenAnthrayoseFMPB", password "maltoschools5"');
+      console.log(`Created mock director: username "${username}"`);
     } else {
       directorId = checkDirector.rows[0].id;
 
