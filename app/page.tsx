@@ -21,16 +21,16 @@ export default function Home() {
         <FeaturesSection />
         <ScriptureHeroSection />
       </main>
-      <footer className="border-t border-border py-12 mt-20 bg-gray-100 dark:bg-gray-900">
-        <div className="container mx-auto px-6 flex justify-between items-end">
+      <footer className="border-t border-border py-12 mt-20 bg-gray-100 dark:bg-gray-900 overflow-hidden">
+        <div className="container mx-auto px-6 flex flex-col sm:flex-row justify-between items-center sm:items-end gap-8">
 
           {/* Massive RoleCaller with hover animation */}
           <h1 className="
-      text-9xl lg:text-[14rem] xl:text-[16rem] 
-      font-extrabold tracking-tighter leading-none 
+      text-6xl sm:text-8xl md:text-9xl lg:text-[14rem] xl:text-[16rem]
+      font-extrabold tracking-tighter leading-none
       text-[#0075e6] select-none
       transition-all duration-700 ease-out
-      hover:scale-105 hover:text-[#0075e6] 
+      hover:scale-105 hover:text-[#0075e6]
       hover:-translate-y-2 hover:drop-shadow-2xl
       cursor-default
     ">
@@ -54,7 +54,7 @@ export default function Home() {
       hover:rotate-6
     "
               >
-                <SiLinkedin size={32} />
+                {SiLinkedin({ size: 32 })}
               </a>
 
               {/* GitHub */}
@@ -68,7 +68,7 @@ export default function Home() {
       hover:rotate-6
     "
               >
-                <SiGithub size={32} />
+                {SiGithub({ size: 32 })}
               </a>
 
               {/* Play Store */}
@@ -82,7 +82,7 @@ export default function Home() {
       hover:-rotate-6
     "
               >
-                <BsGooglePlay size={32} />
+                {BsGooglePlay({ size: 32 })}
               </a>
 
               {/* Website / Link */}
@@ -96,7 +96,7 @@ export default function Home() {
       hover:rotate-12
     "
               >
-                <FaLink size={32} />
+                {FaLink({ size: 32 })}
               </a>
             </div>
           </div>

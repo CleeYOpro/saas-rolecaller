@@ -75,11 +75,14 @@ export default function LoginPage() {
                     fetch(`/api/attendance?schoolId=${selectedSchool.id}`),
                 ]);
 
-                const [classesData, studentsData, attendanceData] = await Promise.all([
+                const [classesJson, studentsJson, attendanceData] = await Promise.all([
                     classesRes.json(),
                     studentsRes.json(),
                     attendanceRes.json(),
                 ]);
+
+                const classesData: Class[] = classesRes.ok && Array.isArray(classesJson) ? classesJson : [];
+                const studentsData: Student[] = studentsRes.ok && Array.isArray(studentsJson) ? studentsJson : [];
 
                 setClasses(classesData);
                 setStudents(studentsData);

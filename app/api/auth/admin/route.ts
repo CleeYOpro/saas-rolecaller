@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import pool from '../../../../lib/db';
+import { clearSession } from '../../../../lib/jwt';
 
 // Removed local client instantiation and connect()
 
@@ -16,6 +17,10 @@ export async function POST(request: Request) {
     );
 
     if (result.rows.length > 0) {
+      // Drop any stale director session so it doesn't gate this admin's access
+      // to schools that aren't assigned to that director (see lib/rbac.ts).
+      await clearSession();
+
       return NextResponse.json({
         success: true,
         school: result.rows[0]
