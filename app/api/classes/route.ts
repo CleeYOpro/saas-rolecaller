@@ -36,12 +36,9 @@ export async function POST(request: Request) {
 
     const { name, schoolId } = await request.json();
 
-    // Generate a random ID for the class
-    const classId = Math.floor(Math.random() * 100000).toString();
-
     const result = await pool.query(
-      'INSERT INTO classes (id, name, school_id) VALUES ($1, $2, $3) RETURNING id, name, school_id as "schoolId"',
-      [classId, name, schoolId]
+      'INSERT INTO classes (name, school_id) VALUES ($1, $2) RETURNING id, name, school_id as "schoolId"',
+      [name, schoolId]
     );
 
     return NextResponse.json(result.rows[0], { status: 201 });

@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     }
 
     const fileBuffer = await file.arrayBuffer();
-    const csvText = Buffer.from(fileBuffer).toString('utf-8');
+    const csvText = Buffer.from(fileBuffer).toString('utf-8').replace(/^﻿/, '');
 
     // Dynamic import for csv-parse
     const { parse } = await import('csv-parse/sync');
@@ -58,34 +58,34 @@ export async function POST(request: Request) {
       let classId;
       if (classResult.rows.length === 0) {
         // Create new class
-        classId = Math.floor(Math.random() * 100000).toString();
-        await pool.query(
-          'INSERT INTO classes (id, name, school_id) VALUES ($1, $2, $3)',
-          [classId, className, schoolId]
+        const newClass = await pool.query(
+          'INSERT INTO classes (name, school_id) VALUES ($1, $2) RETURNING id',
+          [className, schoolId]
         );
+        classId = newClass.rows[0].id;
         classesCreated++;
       } else {
         classId = classResult.rows[0].id;
       }
 
-      // Check if student exists
+      // Check if student exists (by admission number, scoped to this school)
       const studentResult = await pool.query(
-        'SELECT id FROM students WHERE id = $1 AND school_id = $2',
+        'SELECT id FROM students WHERE number = $1 AND school_id = $2',
         [number, schoolId]
       );
 
       if (studentResult.rows.length === 0) {
         // Create new student
         await pool.query(
-          'INSERT INTO students (id, name, grade, class_id, school_id) VALUES ($1, $2, $3, $4, $5)',
-          [number, name, grade, classId, schoolId]
+          'INSERT INTO students (name, grade, class_id, school_id, number) VALUES ($1, $2, $3, $4, $5)',
+          [name, grade, classId, schoolId, number]
         );
         created++;
       } else {
         // Update existing student
         await pool.query(
           'UPDATE students SET name = $1, grade = $2, class_id = $3 WHERE id = $4 AND school_id = $5',
-          [name, grade, classId, number, schoolId]
+          [name, grade, classId, studentResult.rows[0].id, schoolId]
         );
         updated++;
       }

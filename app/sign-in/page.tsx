@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 // ──────────────────────────────────────────────────────────────
 // Types (same as before)
 export type AttendanceStatus = "present" | "absent" | "late";
-export type Student = { id: string; name: string; standard?: string; classId?: string; schoolId: string };
+export type Student = { id: string; name: string; standard?: string; classId?: string; schoolId: string; number?: string };
 export type School = { id: string; name: string; email: string };
 export type Class = { id: string; name: string; schoolId: string };
 export type ClassAssignments = Record<string, string[]>; // classId -> [studentId]

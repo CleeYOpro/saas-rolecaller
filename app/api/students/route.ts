@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const schoolId = searchParams.get('schoolId');
 
-    let query = 'SELECT id, name, grade, class_id as "classId", school_id as "schoolId" FROM students';
+    let query = 'SELECT id, name, grade, class_id as "classId", school_id as "schoolId", number FROM students';
     let params: any[] = [];
 
     const accessError = await verifyDirectorAccess(schoolId);
@@ -35,11 +35,11 @@ export async function POST(request: Request) {
     const session = await getSession();
     if (session?.role === 'director') return NextResponse.json({ error: 'Directors cannot modify data' }, { status: 403 });
 
-    const { id, name, standard, classId, schoolId } = await request.json();
+    const { name, standard, classId, schoolId } = await request.json();
 
     const result = await pool.query(
-      'INSERT INTO students (id, name, grade, class_id, school_id) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, grade as "standard", class_id as "classId", school_id as "schoolId"',
-      [id, name, standard, classId, schoolId]
+      'INSERT INTO students (name, grade, class_id, school_id) VALUES ($1, $2, $3, $4) RETURNING id, name, grade as "standard", class_id as "classId", school_id as "schoolId"',
+      [name, standard, classId, schoolId]
     );
 
     return NextResponse.json(result.rows[0], { status: 201 });

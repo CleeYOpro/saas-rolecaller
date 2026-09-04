@@ -386,13 +386,6 @@ export default function AdminDashboard({
             return;
         }
 
-        // Generate a random ID (simple 6-digit number for now)
-        let id = Math.floor(100000 + Math.random() * 900000).toString();
-        // Ensure uniqueness locally (simple check)
-        while (students.some((s) => s.id === id)) {
-            id = Math.floor(100000 + Math.random() * 900000).toString();
-        }
-
         try {
             const cls = classes.find(c => c.name === className);
             const classId = cls?.id || null;
@@ -400,7 +393,7 @@ export default function AdminDashboard({
             const res = await fetch('/api/students', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id, name, standard, classId, schoolId: school.id }),
+                body: JSON.stringify({ name, standard, classId, schoolId: school.id }),
             });
 
             if (res.ok) {
@@ -409,7 +402,7 @@ export default function AdminDashboard({
                 if (classId) {
                     setAssignments((prev) => ({
                         ...prev,
-                        [classId]: [...(prev[classId] ?? []), id],
+                        [classId]: [...(prev[classId] ?? []), newStudent.id],
                     }));
                 }
                 setStudentName("");
@@ -600,7 +593,7 @@ export default function AdminDashboard({
         <div className="min-h-screen bg-[#121212] p-6 md:p-12 font-sans text-[#EAEAEA]">
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+                <div className="flex flex-col md:flex-row justify-between items-start mb-10 gap-6">
                     <div>
                         <h1 className="text-4xl font-bold text-[#F1F1F1] tracking-tight">
                             Admin Dashboard
@@ -609,6 +602,17 @@ export default function AdminDashboard({
                             {school.name} - Manage classes, students, and attendance
                         </p>
                     </div>
+
+                    <ShinyButton
+                        onClick={goBack}
+                        variant="secondary"
+                        className="px-4 py-2 text-sm font-semibold"
+                    >
+                        <span className="flex items-center gap-2">
+                            <ArrowLeft size={16} strokeWidth={3} />
+                            Back to sign in
+                        </span>
+                    </ShinyButton>
                 </div>
 
                 {/* Tab Navigation */}
@@ -887,7 +891,7 @@ export default function AdminDashboard({
 
                                                 return (
                                                     <tr key={student.id} className="border-b border-[#2D2D2D] hover:bg-[#121212] transition-colors">
-                                                        <td className="px-4 py-3 text-[#EAEAEA]">{student.id}</td>
+                                                        <td className="px-4 py-3 text-[#EAEAEA]">{student.number || student.id}</td>
                                                         <td className="px-4 py-3">
                                                             {isEditing ? (
                                                                 <input
