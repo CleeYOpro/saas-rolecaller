@@ -222,6 +222,7 @@ function AttendanceTrendChart({
 
 interface AdminProps {
     goBack: () => void;
+    showBackButton?: boolean;
     school: School;
     classes: Class[];
     setClasses: React.Dispatch<React.SetStateAction<Class[]>>;
@@ -235,6 +236,7 @@ interface AdminProps {
 
 export default function AdminDashboard({
     goBack,
+    showBackButton = true,
     school,
     classes,
     setClasses,
@@ -603,16 +605,18 @@ export default function AdminDashboard({
                         </p>
                     </div>
 
-                    <ShinyButton
-                        onClick={goBack}
-                        variant="secondary"
-                        className="px-4 py-2 text-sm font-semibold"
-                    >
-                        <span className="flex items-center gap-2">
-                            <ArrowLeft size={16} strokeWidth={3} />
-                            Back to sign in
-                        </span>
-                    </ShinyButton>
+                    {showBackButton && (
+                        <ShinyButton
+                            onClick={goBack}
+                            variant="secondary"
+                            className="px-4 py-2 text-sm font-semibold"
+                        >
+                            <span className="flex items-center gap-2">
+                                <ArrowLeft size={16} strokeWidth={3} />
+                                Back to sign in
+                            </span>
+                        </ShinyButton>
+                    )}
                 </div>
 
                 {/* Tab Navigation */}

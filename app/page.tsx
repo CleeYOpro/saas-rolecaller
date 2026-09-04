@@ -6,8 +6,6 @@ import { FeaturesSection } from "@/components/features-section"
 import { ScriptureHeroSection } from "@/components/features-slideshow-section"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { SiLinkedin } from "react-icons/si";
-import { BsGooglePlay } from "react-icons/bs";
 import { SiGithub } from "react-icons/si";
 import { FaLink } from "react-icons/fa6";
 
@@ -43,27 +41,15 @@ export default function Home() {
 
             {/* Social / Store Icons with individual hover bounce */}
             <div className="flex items-center gap-8 pb-2">
-              {/* LinkedIn */}
-              <a
-                href="#"
-                aria-label="LinkedIn"
-                className="
-      text-muted-foreground hover:text-foreground 
-      transition-all duration-300 
-      hover:scale-125 hover:-translate-y-2
-      hover:rotate-6
-    "
-              >
-                {SiLinkedin({ size: 32 })}
-              </a>
-
               {/* GitHub */}
               <a
-                href="#"
+                href="https://github.com/CleeYOpro/saas-rolecaller"
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="GitHub"
                 className="
-      text-muted-foreground hover:text-foreground 
-      transition-all duration-300 
+      text-muted-foreground hover:text-foreground
+      transition-all duration-300
       hover:scale-125 hover:-translate-y-2
       hover:rotate-6
     "
@@ -71,27 +57,15 @@ export default function Home() {
                 {SiGithub({ size: 32 })}
               </a>
 
-              {/* Play Store */}
-              <a
-                href="#"
-                aria-label="Google Play"
-                className="
-      text-muted-foreground hover:text-foreground 
-      transition-all duration-300 
-      hover:scale-125 hover:-translate-y-2
-      hover:-rotate-6
-    "
-              >
-                {BsGooglePlay({ size: 32 })}
-              </a>
-
               {/* Website / Link */}
               <a
-                href="#"
+                href="https://cleof.us"
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="Website"
                 className="
-      text-muted-foreground hover:text-foreground 
-      transition-all duration-300 
+      text-muted-foreground hover:text-foreground
+      transition-all duration-300
       hover:scale-125 hover:-translate-y-2
       hover:rotate-12
     "

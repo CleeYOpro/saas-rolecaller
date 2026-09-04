@@ -23,7 +23,7 @@ export function FeaturesSection() {
         "Completely free for partner schools. Data can be easily accesible via director login and can be downloaded as Excel files.",
       image: "/WhatsApp Image 2026-02-02 at 9.57.09 PM.jpeg",
       alt: "Students in school uniforms smiling in classroom",
-      schoolname: "Data stored in ",
+      schoolname: "Stored on reliable cloud infrastructure",
     },
     {
       icon: Users,

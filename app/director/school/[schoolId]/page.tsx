@@ -134,6 +134,7 @@ export default function DirectorSchoolView({ params }: { params: Promise<{ schoo
         </div>
         <AdminDashboard
             goBack={() => router.push("/director")}
+            showBackButton={false}
             school={selectedSchool}
             classes={classes}
             setClasses={setClasses}
