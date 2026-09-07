@@ -35,7 +35,7 @@ const releases: Release[] = [
     highlight: "UI improvements & field naming",
     changes: [
       'Updated CSV import validation to accept multiple column name variations for grade/roll number: "grade", "roll no", "roll no.", "rollno"',
-      'Updated UI labels throughout — "Grade" renamed to "Roll No." in forms and table headers',
+      'Updated UI labels throughout: "Grade" renamed to "Roll No." in forms and table headers',
       'CSV format help text updated: name,grade,class → name,roll no,class',
       'Attendance chart label updated: "Total" → "Day Total"',
       "Removed student ID display from the student search overview for a cleaner UX",
@@ -65,7 +65,7 @@ const releases: Release[] = [
     profile: "production",
     highlight: "Foundational data types & offline-first",
     changes: [
-      "Offline-first architecture — offline login with school credentials stored locally",
+      "Offline-first architecture: offline login with school credentials stored locally",
       "Silent sync on teacher login when online, with local database fallback for classes, students, and attendance",
       "Enhanced API client with offline support for getClasses(), getStudents(), and getAttendance(), plus proper error handling and fallbacks",
       "New syncSchoolsToLocal() function to maintain school credentials for offline login",
@@ -89,7 +89,7 @@ const releases: Release[] = [
       "Real-time student search by name",
       "Authentication store (authStore) and an offline sync service for schools, classes, students, and attendance",
       "Icon asset optimization (logo.png)",
-      "Android build optimization — minification and resource shrinking enabled",
+      "Android build optimization: minification and resource shrinking enabled",
       "Dependencies added: expo-build-properties, react-native-svg, uuid",
     ],
   },
@@ -198,7 +198,7 @@ export default function ChangelogPage() {
                           </span>
                         )}
                       </div>
-                      <span className="text-sm text-muted-foreground sm:before:content-['—'] sm:before:mr-4">
+                      <span className="text-sm text-muted-foreground sm:before:content-['•'] sm:before:mr-4">
                         {release.highlight}
                       </span>
                     </div>
@@ -210,7 +210,7 @@ export default function ChangelogPage() {
                       <span>{release.profile}</span>
                       <span className="opacity-50">·</span>
                       <span>
-                        {release.commitHash} — {release.commitMessage}
+                        {release.commitHash}: {release.commitMessage}
                       </span>
                     </div>
                     <ul className="space-y-2.5">
@@ -234,7 +234,7 @@ export default function ChangelogPage() {
 
       <footer className="border-t border-border py-10 mt-20">
         <p className="text-center text-sm text-muted-foreground">
-          © 2026 RoleCaller — Built for FMPB with ❤️
+          © 2026 RoleCaller. Built for FMPB with ❤️
         </p>
       </footer>
     </div>

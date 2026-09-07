@@ -78,7 +78,7 @@ export default function Home() {
 
         {/* Copyright with subtle fade-in on hover (optional extra touch) */}
         <p className="text-center text-sm text-muted-foreground mt-10 transition-opacity duration-500 hover:opacity-80">
-          © 2025 RoleCaller — Built for FMPB with ❤️
+          © 2025 RoleCaller. Built for FMPB with ❤️
         </p>
       </footer>
     </div>

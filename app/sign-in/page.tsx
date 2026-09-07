@@ -35,6 +35,7 @@ export default function LoginPage() {
     const [toastMessage, setToastMessage] = useState<string | null>(null);
 
     const [schools, setSchools] = useState<School[]>([]);
+    const [schoolsLoading, setSchoolsLoading] = useState(true);
     const [classes, setClasses] = useState<Class[]>([]);
     const [students, setStudents] = useState<Student[]>([]);
     const [assignments, setAssignments] = useState<ClassAssignments>({});
@@ -53,6 +54,8 @@ export default function LoginPage() {
             } catch (err) {
                 console.error("Failed to fetch schools:", err);
                 setSchools([]);
+            } finally {
+                setSchoolsLoading(false);
             }
         }
         fetchSchools();
@@ -218,6 +221,23 @@ export default function LoginPage() {
                 attendance={attendance}
                 setAttendance={setAttendance}
             />
+        );
+    }
+
+    // ────────────────────── Initial Loading Screen ──────────────────────
+    if (schoolsLoading) {
+        return (
+            <div className="min-h-screen bg-[#121212] flex items-center justify-center p-4 sm:p-6">
+                <div className="flex flex-col items-center gap-6">
+                    <div className="relative w-16 h-16">
+                        <div className="absolute inset-0 rounded-full border-4 border-[#2A2A2E]" />
+                        <div className="absolute inset-0 rounded-full border-4 border-t-[#3A86FF] animate-spin" />
+                    </div>
+                    <h1 className="text-2xl font-bold text-white">
+                        rolecaller<span className="text-[#3A86FF]">.</span>
+                    </h1>
+                </div>
+            </div>
         );
     }
 

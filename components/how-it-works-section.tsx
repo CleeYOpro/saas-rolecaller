@@ -9,7 +9,7 @@ export function HowItWorksSection() {
     {
       icon: Smartphone,
       title: "Works Offline",
-      description: "Teachers mark attendance on a simple phone app — even in villages with no signal. Data is saved instantly on the device.",
+      description: "Teachers mark attendance on a simple phone app, even in villages with no signal. Data is saved instantly on the device.",
       visual: (
         <div className="h-[280px] flex items-center justify-center">
           <div className="bg-muted/50 border-2 border-dashed border-border rounded-xl w-full h-full flex items-center justify-center text-muted-foreground/70">

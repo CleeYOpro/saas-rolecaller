@@ -19,8 +19,8 @@ export function Navigation() {
               rolecaller.
             </Link>
             <div className="hidden md:flex items-center gap-6">
-              <Link href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Features
+              <Link href="/how-it-works" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                See How It Works
               </Link>
               <Link href="/changelog" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Changelog
