@@ -1,4 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -75,10 +74,10 @@
   --sidebar-ring: oklch(0.439 0 0);
 }
 
-/* Properly configure Satoshi font for Tailwind CSS v4 */
+/* Fonts are loaded via next/font in app/layout.tsx and exposed as CSS variables */
 @theme inline {
-  --font-display: Outfit, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: var(--font-outfit), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

@@ -2,7 +2,6 @@
 
 import { Download, School } from "lucide-react"
 import { ShinyButton } from "@/components/ui/shiny-button"
-import Link from "next/link"
 
 export function ScriptureHeroSection() {
   return (
@@ -22,20 +21,19 @@ export function ScriptureHeroSection() {
 
         {/* CTAs */}
         <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <ShinyButton className="text-base px-8 py-5 font-medium flex items-center">
+          <ShinyButton href="/changelog" className="text-base px-8 py-5 font-medium flex items-center">
             <Download className="w-5 h-5 mr-2" />
             Download for Teachers
           </ShinyButton>
 
-          <Link href="/form">
-            <ShinyButton
-              variant="secondary"
-              className="text-base px-8 py-5 font-medium backdrop-blur border border-black/10 flex items-center"
-            >
-              <School className="w-5 h-5 mr-2" />
-              Add Your School
-            </ShinyButton>
-          </Link>
+          <ShinyButton
+            href="/form"
+            variant="secondary"
+            className="text-base px-8 py-5 font-medium backdrop-blur border border-black/10 flex items-center"
+          >
+            <School className="w-5 h-5 mr-2" />
+            Add Your School
+          </ShinyButton>
         </div>
       </div>
     </section>

@@ -283,7 +283,7 @@ export default function LoginPage() {
                         <div className="p-4 bg-[#451A1A] border border-[#D32F2F] rounded-lg text-sm">
                             <p className="text-[#ff4d4f] font-semibold mb-2">No schools found</p>
                             <p className="text-[#EAEAEA]">
-                                Create a school first via <code className="bg-[#121212] px-2 py-1 rounded">POST /api/schools</code>
+                                No schools are set up yet. Contact your administrator.
                             </p>
                         </div>
                         <ShinyButton onClick={() => router.push('/')} variant="secondary" className="w-full" >
@@ -335,12 +335,12 @@ export default function LoginPage() {
                         )}
 
                         <div>
-                            <ShinyButton className="w-full py-3 text-lg">
+                            <ShinyButton type="submit" className="w-full py-3 text-lg">
                                 Login as Admin
                             </ShinyButton>
                         </div>
 
-                        <div onClick={goBack}>
+                        <div>
                             <ShinyButton onClick={() => router.push('/')} variant="secondary" className="w-full" >
                                 Back
                             </ShinyButton>
@@ -395,7 +395,7 @@ export default function LoginPage() {
                             )}
 
                             <div>
-                                <ShinyButton className="w-full py-3 text-lg">
+                                <ShinyButton type="submit" className="w-full py-3 text-lg">
                                     Login as Director
                                 </ShinyButton>
                             </div>

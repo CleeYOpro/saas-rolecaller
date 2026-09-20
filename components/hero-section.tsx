@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link"
 import { ShinyButton } from "@/components/ui/shiny-button"
 import { ArrowRight, Play, WifiOff, Check, Clock } from "lucide-react"
 import { motion } from "framer-motion"
@@ -72,18 +71,14 @@ export function HeroSection() {
 
 
           <div className="flex flex-col sm:flex-row gap-4 pt-2">
-            <Link href="/changelog">
-              <ShinyButton variant="primary" className="text-base px-8 py-6 text-lg font-medium">
-                Download for Teachers
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </ShinyButton>
-            </Link>
-            <Link href="/how-it-works">
-              <ShinyButton variant="secondary" className="text-base px-8 py-6 text-lg font-medium">
-                <Play className="mr-2 h-4 w-4 fill-current" />
-                See How It Works
-              </ShinyButton>
-            </Link>
+            <ShinyButton href="/changelog" variant="primary" className="text-base px-8 py-6 text-lg font-medium">
+              Download for Teachers
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </ShinyButton>
+            <ShinyButton href="/how-it-works" variant="secondary" className="text-base px-8 py-6 text-lg font-medium">
+              <Play className="mr-2 h-4 w-4 fill-current" />
+              See How It Works
+            </ShinyButton>
           </div>
         </motion.div>
 
