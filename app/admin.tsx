@@ -1,8 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { School, Class, AttendanceMap, ClassAssignments, Student, AttendanceStatus } from "./sign-in/page";
 import StudentSearchOverview from "./StudentSearchOverview";
+import PromotionModal from "./PromotionModal";
+import { GRADE_LADDER, TEACHER_CLASS_NAME, sortClasses } from "@/lib/grades";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -84,6 +86,11 @@ function formatMonthLabel(monthKey: string): string {
 }
 
 const selectClassName = "px-4 py-1.5 rounded-lg text-sm font-semibold bg-[#121212] text-[#EAEAEA] border border-[#2D2D2D] focus:border-[#3A86FF] focus:outline-none";
+
+// Standard class names offered when adding a class ("TEACHERS ATTENDANCE" holds teacher attendance)
+const CLASS_NAME_OPTIONS = [...GRADE_LADDER.map((g) => g.className), TEACHER_CLASS_NAME];
+
+type GraduatedStudent = { id: string; name: string; grade: string; number?: string; schoolId: string; graduationYear: number };
 
 function AttendanceTrendChart({
     attendance,
@@ -303,6 +310,46 @@ export default function AdminDashboard({
     const [showTeacherCalendar, setShowTeacherCalendar] = useState(false);
     const [showStudentSearch, setShowStudentSearch] = useState(false);
 
+    // Grades in KG → Class 6 order instead of whatever order the API returns
+    const sortedClasses = useMemo(() => sortClasses(classes), [classes]);
+
+    // Graduated students (moved out of the student list by the yearly promotion)
+    const [graduates, setGraduates] = useState<GraduatedStudent[]>([]);
+    const [showGraduates, setShowGraduates] = useState(false);
+    const [showPromotion, setShowPromotion] = useState(false);
+
+    const loadGraduates = useCallback(async () => {
+        try {
+            const res = await fetch(`/api/graduated-students?schoolId=${school.id}`);
+            const data = await res.json();
+            if (res.ok && Array.isArray(data)) setGraduates(data);
+        } catch (error) {
+            console.error('Error loading graduated students:', error);
+        }
+    }, [school.id]);
+
+    useEffect(() => {
+        loadGraduates();
+    }, [loadGraduates]);
+
+    // Show graduates in the search/overview modal with each graduation year acting as their class
+    const graduateView = useMemo(() => {
+        const years = Array.from(new Set(graduates.map((g) => g.graduationYear))).sort((a, b) => b - a);
+        return {
+            years,
+            counts: graduates.reduce<Record<number, number>>((acc, g) => ({ ...acc, [g.graduationYear]: (acc[g.graduationYear] ?? 0) + 1 }), {}),
+            classes: years.map((year) => ({ id: `graduated-${year}`, name: `Graduated ${year}`, schoolId: school.id })),
+            students: graduates.map((g) => ({
+                id: g.id,
+                name: g.name,
+                standard: g.grade,
+                number: g.number,
+                classId: `graduated-${g.graduationYear}`,
+                schoolId: g.schoolId,
+            })),
+        };
+    }, [graduates, school.id]);
+
     // Class management state
     const [newClassName, setNewClassName] = useState("");
 
@@ -455,6 +502,39 @@ export default function AdminDashboard({
         }
     };
 
+    // Reload classes and students from the server and rebuild class assignments
+    const reloadClassesAndStudents = async () => {
+        const [studentsRes, classesRes] = await Promise.all([
+            fetch(`/api/students?schoolId=${school.id}`),
+            fetch(`/api/classes?schoolId=${school.id}`),
+        ]);
+        const studentsData = await studentsRes.json();
+        const classesData = await classesRes.json();
+        setStudents(studentsData);
+        setClasses(classesData);
+
+        const assignmentsMap: ClassAssignments = {};
+        studentsData.forEach((student: Student) => {
+            if (student.classId) {
+                if (!assignmentsMap[student.classId]) {
+                    assignmentsMap[student.classId] = [];
+                }
+                assignmentsMap[student.classId].push(student.id);
+            }
+        });
+        setAssignments(assignmentsMap);
+    };
+
+    // After a yearly promotion: students moved classes and graduates left the student list.
+    // Attendance is untouched, so the attendance map doesn't need reloading.
+    const handlePromoted = async () => {
+        try {
+            await Promise.all([reloadClassesAndStudents(), loadGraduates()]);
+        } catch (error) {
+            console.error('Error reloading after promotion:', error);
+        }
+    };
+
     // CSV Upload handler
     const handleCsvUpload = async () => {
         if (!csvFile) return;
@@ -475,28 +555,18 @@ export default function AdminDashboard({
             const data = await res.json();
 
             if (res.ok) {
-                setUploadMessage(`✅ Success! Created: ${data.results.created}, Updated: ${data.results.updated}, Classes Created: ${data.results.classesCreated}`);
+                const { created, skipped, invalid, classesCreated, numberConflicts } = data.results;
+                let message = `✅ Added ${created} new student${created === 1 ? '' : 's'}. Skipped ${skipped} already in the system.`;
+                if (classesCreated > 0) message += ` Classes created: ${classesCreated}.`;
+                if (invalid > 0) message += ` Skipped ${invalid} row${invalid === 1 ? '' : 's'} with missing columns.`;
+                if (numberConflicts.length > 0) {
+                    message += ` Not added because the admission number is already used: ${numberConflicts
+                        .map((c: { name: string; number: string; usedBy: string }) => `${c.name} #${c.number} (used by ${c.usedBy})`)
+                        .join('; ')}.`;
+                }
+                setUploadMessage(message);
 
-                // Refresh students and classes
-                const studentsRes = await fetch(`/api/students?schoolId=${school.id}`);
-                const studentsData = await studentsRes.json();
-                setStudents(studentsData);
-
-                const classesRes = await fetch(`/api/classes?schoolId=${school.id}`);
-                const classesData = await classesRes.json();
-                setClasses(classesData);
-
-                // Rebuild assignments
-                const assignmentsMap: ClassAssignments = {};
-                studentsData.forEach((student: Student) => {
-                    if (student.classId) {
-                        if (!assignmentsMap[student.classId]) {
-                            assignmentsMap[student.classId] = [];
-                        }
-                        assignmentsMap[student.classId].push(student.id);
-                    }
-                });
-                setAssignments(assignmentsMap);
+                await reloadClassesAndStudents();
 
                 setCsvFile(null);
             } else {
@@ -694,12 +764,30 @@ export default function AdminDashboard({
                             </div>
                         )}
 
+                        {/* Graduated Students (archived, not part of daily attendance) */}
+                        {graduates.length > 0 && (
+                            <div className="bg-[#1E1E1E] rounded-xl p-6 border border-[#2D2D2D]">
+                                <h2 className="text-2xl font-bold text-[#F1F1F1] mb-4">Graduated Students</h2>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                                    {graduateView.years.map((year) => (
+                                        <div key={year} className="bg-[#121212] p-4 rounded-lg border border-[#2D2D2D]">
+                                            <div className="text-[#F1F1F1] text-3xl font-bold">{graduateView.counts[year]}</div>
+                                            <div className="text-[#EAEAEA] mt-1">Graduated {year}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <ShinyButton onClick={() => setShowGraduates(true)} className="w-full py-2.5">
+                                    View Graduated Students
+                                </ShinyButton>
+                            </div>
+                        )}
+
                         {/* Attendance Trends */}
                         <div className="bg-[#1E1E1E] rounded-xl p-6 border border-[#2D2D2D]">
                             <h2 className="text-2xl font-bold text-[#F1F1F1] mb-4">Attendance Trends</h2>
                             <AttendanceTrendChart
                                 attendance={attendance}
-                                classes={classes}
+                                classes={sortedClasses}
                                 teacherClassId={teacherClass?.id}
                             />
                         </div>
@@ -763,17 +851,33 @@ export default function AdminDashboard({
                             <div className="bg-[#1E1E1E] rounded-xl p-6 border border-[#2D2D2D]">
                                 <h2 className="text-2xl font-bold text-[#F1F1F1] mb-6">Manage Classes</h2>
 
+                                {/* Yearly Promotion */}
+                                <div className="mb-8 p-4 bg-[#121212] rounded-lg border border-[#2D2D2D] flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-[#F1F1F1]">Start New School Year</h3>
+                                        <p className="text-[#EAEAEA] text-sm mt-1">
+                                            Moves every student in {school.name} up one class (KG → Class 1 … Class 6 → graduated). You&apos;ll see a preview first.
+                                        </p>
+                                    </div>
+                                    <ShinyButton onClick={() => setShowPromotion(true)} className="px-6 py-2 font-semibold whitespace-nowrap">
+                                        Promote Students / Start New School Year
+                                    </ShinyButton>
+                                </div>
+
                                 {/* Add Class Form */}
                                 <div className="mb-8 p-4 bg-[#121212] rounded-lg border border-[#2D2D2D]">
                                     <h3 className="text-lg font-semibold text-[#F1F1F1] mb-4">Add New Class</h3>
                                     <div className="flex gap-4">
-                                        <input
-                                            type="text"
+                                        <select
                                             value={newClassName}
                                             onChange={(e) => setNewClassName(e.target.value)}
-                                            placeholder="Class name (e.g., Grade 5A)"
                                             className="flex-1 px-4 py-2 rounded-lg bg-[#1E1E1E] text-white border border-[#333] focus:border-[#3A86FF] focus:outline-none"
-                                        />
+                                        >
+                                            <option value="">Select class</option>
+                                            {CLASS_NAME_OPTIONS.filter((name) => !classes.some((c) => c.name === name)).map((name) => (
+                                                <option key={name} value={name}>{name}</option>
+                                            ))}
+                                        </select>
                                         <ShinyButton
                                             onClick={addClass}
                                             variant="primary"
@@ -786,7 +890,7 @@ export default function AdminDashboard({
 
                                 {/* Classes List */}
                                 <div className="space-y-3">
-                                    {classes.map((cls) => (
+                                    {sortedClasses.map((cls) => (
                                         <div key={cls.id} className="flex items-center justify-between p-4 bg-[#121212] rounded-lg border border-[#2D2D2D]">
                                             <div>
                                                 <div className="text-[#F1F1F1] font-semibold">{cls.name}</div>
@@ -814,7 +918,8 @@ export default function AdminDashboard({
                                 <div className="mb-8 p-4 bg-[#121212] rounded-lg border border-[#2D2D2D]">
                                     <h3 className="text-lg font-semibold text-[#F1F1F1] mb-4">Upload Students via CSV</h3>
                                     <p className="text-[#EAEAEA] text-sm mb-4">
-                                        CSV must contain columns: <strong>name</strong>, <strong>number</strong> (5 digits), <strong>grade</strong>, <strong>class</strong>
+                                        CSV must contain columns: <strong>name</strong>, <strong>number</strong> (5 digits), <strong>grade</strong>, <strong>class</strong>.
+                                        Students already in that class with the same name are skipped, so only new students are added.
                                     </p>
                                     <div className="flex flex-col md:flex-row gap-4">
                                         <input
@@ -862,7 +967,7 @@ export default function AdminDashboard({
                                             className="px-4 py-2 rounded-lg bg-[#1E1E1E] text-white border border-[#333] focus:border-[#3A86FF] focus:outline-none"
                                         >
                                             <option value="">Select class (optional)</option>
-                                            {classes.map((cls) => (
+                                            {sortedClasses.map((cls) => (
                                                 <option key={cls.id} value={cls.name}>{cls.name}</option>
                                             ))}
                                         </select>
@@ -928,7 +1033,7 @@ export default function AdminDashboard({
                                                                     className="w-full px-3 py-1 rounded bg-[#121212] text-white border border-[#3A86FF] focus:outline-none"
                                                                 >
                                                                     <option value="">Unassigned</option>
-                                                                    {classes.map((cls) => (
+                                                                    {sortedClasses.map((cls) => (
                                                                         <option key={cls.id} value={cls.id}>{cls.name}</option>
                                                                     ))}
                                                                 </select>
@@ -1002,7 +1107,7 @@ export default function AdminDashboard({
                         <div className="p-6">
                             <StudentSearchOverview
                                 students={students.filter((s) => s.classId !== teacherClass?.id)}
-                                classes={classes.filter((c) => c.id !== teacherClass?.id)}
+                                classes={sortedClasses.filter((c) => c.id !== teacherClass?.id)}
                                 schoolId={school.id}
                                 onStudentUpdate={handlePersonUpdate}
                             />
@@ -1035,6 +1140,41 @@ export default function AdminDashboard({
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Graduated Students Search & Attendance Overview Modal (read-only) */}
+            {showGraduates && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-[#121212] rounded-xl border border-[#2D2D2D] max-w-6xl w-full max-h-[90vh] overflow-y-auto relative">
+                        <button
+                            onClick={() => setShowGraduates(false)}
+                            className="absolute top-4 right-4 text-[#EAEAEA] hover:text-white text-3xl leading-none z-10"
+                        >
+                            &times;
+                        </button>
+                        <div className="p-6">
+                            <StudentSearchOverview
+                                students={graduateView.students}
+                                classes={graduateView.classes}
+                                schoolId={school.id}
+                                title="Graduated Students"
+                                searchLabel="Search Graduated Student"
+                                readOnly
+                                onStudentUpdate={() => {}}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Yearly Promotion Modal */}
+            {showPromotion && (
+                <PromotionModal
+                    schoolId={school.id}
+                    schoolName={school.name}
+                    onClose={() => setShowPromotion(false)}
+                    onPromoted={handlePromoted}
+                />
             )}
         </div>
     );

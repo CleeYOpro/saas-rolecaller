@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import pool from '../../../../lib/db';
+import { GRADE_LADDER, gradeIndex } from '../../../../lib/grades';
 
 // Define the type for our CSV records
 interface CSVRecord {
@@ -37,30 +38,34 @@ export async function POST(request: Request) {
     }) as CSVRecord[];
 
     let created = 0;
-    let updated = 0;
+    let skipped = 0;
+    let invalid = 0;
     let classesCreated = 0;
+    const numberConflicts: { name: string; number: string; usedBy: string }[] = [];
 
-    // Process each record
+    // An upload only adds students; existing students are never changed, so uploading the same
+    // (or last year's) list again can't create duplicates or move anyone between classes.
     for (const record of records) {
       const { name, number, grade, class: className } = record;
 
       if (!name || !number || !grade || !className) {
         console.warn('Skipping invalid record:', record);
+        invalid++;
         continue;
       }
 
-      // Check if class exists, create if not
+      // Match the class ignoring case and spacing; new grade classes get the standard spelling
       let classResult = await pool.query(
-        'SELECT id FROM classes WHERE name = $1 AND school_id = $2',
-        [className, schoolId]
+        'SELECT id FROM classes WHERE lower(trim(name)) = lower($1) AND school_id = $2 ORDER BY created_at LIMIT 1',
+        [className.trim(), schoolId]
       );
 
       let classId;
       if (classResult.rows.length === 0) {
-        // Create new class
+        const i = gradeIndex(className);
         const newClass = await pool.query(
           'INSERT INTO classes (name, school_id) VALUES ($1, $2) RETURNING id',
-          [className, schoolId]
+          [i >= 0 ? GRADE_LADDER[i].className : className.trim(), schoolId]
         );
         classId = newClass.rows[0].id;
         classesCreated++;
@@ -68,34 +73,45 @@ export async function POST(request: Request) {
         classId = classResult.rows[0].id;
       }
 
-      // Check if student exists (by admission number, scoped to this school)
-      const studentResult = await pool.query(
-        'SELECT id FROM students WHERE number = $1 AND school_id = $2',
+      // Same name (ignoring case and spacing) in the same class is the same student, unless both
+      // have admission numbers and they differ, i.e. two different children with the same name
+      const sameName = await pool.query(
+        `SELECT number FROM students
+         WHERE school_id = $1 AND class_id = $2
+           AND lower(regexp_replace(trim(name), '\\s+', ' ', 'g')) = lower(regexp_replace(trim($3), '\\s+', ' ', 'g'))`,
+        [schoolId, classId, name]
+      );
+      if (sameName.rows.some((s) => s.number === null || s.number === number)) {
+        skipped++;
+        continue;
+      }
+
+      // Admission numbers are unique per school; don't take one that belongs to another student
+      const numberOwner = await pool.query(
+        `SELECT s.name, c.name AS class
+         FROM students s JOIN classes c ON c.id = s.class_id
+         WHERE s.number = $1 AND s.school_id = $2`,
         [number, schoolId]
       );
-
-      if (studentResult.rows.length === 0) {
-        // Create new student
-        await pool.query(
-          'INSERT INTO students (name, grade, class_id, school_id, number) VALUES ($1, $2, $3, $4, $5)',
-          [name, grade, classId, schoolId, number]
-        );
-        created++;
-      } else {
-        // Update existing student
-        await pool.query(
-          'UPDATE students SET name = $1, grade = $2, class_id = $3 WHERE id = $4 AND school_id = $5',
-          [name, grade, classId, studentResult.rows[0].id, schoolId]
-        );
-        updated++;
+      if (numberOwner.rows.length > 0) {
+        numberConflicts.push({ name, number, usedBy: `${numberOwner.rows[0].name} (${numberOwner.rows[0].class})` });
+        continue;
       }
+
+      await pool.query(
+        'INSERT INTO students (name, grade, class_id, school_id, number) VALUES ($1, $2, $3, $4, $5)',
+        [name, grade, classId, schoolId, number]
+      );
+      created++;
     }
 
     return NextResponse.json({
       results: {
         created,
-        updated,
-        classesCreated
+        skipped,
+        invalid,
+        classesCreated,
+        numberConflicts
       }
     });
   } catch (error) {

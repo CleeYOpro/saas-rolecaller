@@ -9,7 +9,9 @@ import pool from '../../../../lib/db';
  * in that class who is missing a record for that date.
  *
  * This is safe to call multiple times — the NOT EXISTS guard prevents
- * duplicate inserts.
+ * duplicate inserts. It never fills dates before the school's last yearly
+ * promotion, or before a student was in another class, because the class had
+ * different students then — past school years must not gain the newer ones.
  */
 export async function POST() {
   try {
@@ -34,12 +36,12 @@ export async function POST() {
          SELECT s.id, 'present', $1, $2
          FROM students s
          WHERE s.class_id = $2
+           AND $1 >= COALESCE((SELECT max(p.created_at)::date FROM school_promotions p WHERE p.school_id = s.school_id), '-infinity')
            AND NOT EXISTS (
              SELECT 1
              FROM attendance a
              WHERE a.student_id = s.id
-               AND a.class_id = $2
-               AND a.date = $1
+               AND (a.date = $1 OR (a.class_id <> $2 AND a.date > $1))
            )`,
         [date, class_id]
       );

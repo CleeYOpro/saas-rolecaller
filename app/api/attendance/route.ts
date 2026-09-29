@@ -16,8 +16,10 @@ export async function GET(request: Request) {
     const accessError = await verifyDirectorAccess(schoolId);
     if (accessError) return accessError;
 
+    // Filter by the class's school rather than the student's, so graduated students'
+    // past attendance still shows up in the history of the classes they were in
     if (schoolId) {
-      query += ' WHERE student_id IN (SELECT id FROM students WHERE school_id = $1)';
+      query += ' WHERE class_id IN (SELECT id FROM classes WHERE school_id = $1)';
       params.push(schoolId);
     }
 
@@ -42,17 +44,19 @@ export async function POST(request: Request) {
     );
 
     // Auto-present logic: Find all students in the same class who don't have a record for that date, and insert them as 'present'.
+    // Never fills dates before the school's last yearly promotion or before a student was in another class,
+    // because the class had different students then (correcting an old date must not add the newer ones).
     await pool.query(
       `INSERT INTO attendance (student_id, status, date, class_id)
        SELECT s.id, 'present', $1, $2
        FROM students s
        WHERE s.class_id = $2
+         AND $1 >= COALESCE((SELECT max(p.created_at)::date FROM school_promotions p WHERE p.school_id = s.school_id), '-infinity')
          AND NOT EXISTS (
            SELECT 1
            FROM attendance a
            WHERE a.student_id = s.id
-             AND a.class_id = $2
-             AND a.date = $1
+             AND (a.date = $1 OR (a.class_id <> $2 AND a.date > $1))
          )`,
       [date, classId]
     );
@@ -81,17 +85,18 @@ export async function PUT(request: Request) {
     }
 
     // Auto-present logic: Find all students in the same class who don't have a record for that date, and insert them as 'present'.
+    // Skips dates when the class had different students (see POST).
     await pool.query(
       `INSERT INTO attendance (student_id, status, date, class_id)
        SELECT s.id, 'present', $1, $2
        FROM students s
        WHERE s.class_id = $2
+         AND $1 >= COALESCE((SELECT max(p.created_at)::date FROM school_promotions p WHERE p.school_id = s.school_id), '-infinity')
          AND NOT EXISTS (
            SELECT 1
            FROM attendance a
            WHERE a.student_id = s.id
-             AND a.class_id = $2
-             AND a.date = $1
+             AND (a.date = $1 OR (a.class_id <> $2 AND a.date > $1))
          )`,
       [date, classId]
     );
