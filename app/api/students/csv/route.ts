@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import pool from '../../../../lib/db';
-import { GRADE_LADDER, gradeIndex } from '../../../../lib/grades';
+import { standardClassName } from '../../../../lib/grades';
 
 // Define the type for our CSV records
 interface CSVRecord {
@@ -62,10 +62,9 @@ export async function POST(request: Request) {
 
       let classId;
       if (classResult.rows.length === 0) {
-        const i = gradeIndex(className);
         const newClass = await pool.query(
           'INSERT INTO classes (name, school_id) VALUES ($1, $2) RETURNING id',
-          [i >= 0 ? GRADE_LADDER[i].className : className.trim(), schoolId]
+          [standardClassName(className) ?? className.trim(), schoolId]
         );
         classId = newClass.rows[0].id;
         classesCreated++;

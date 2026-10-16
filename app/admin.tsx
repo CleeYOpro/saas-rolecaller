@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { School, Class, AttendanceMap, ClassAssignments, Student, AttendanceStatus } from "./sign-in/page";
 import StudentSearchOverview from "./StudentSearchOverview";
 import PromotionModal from "./PromotionModal";
-import { GRADE_LADDER, TEACHER_CLASS_NAME, sortClasses } from "@/lib/grades";
+import { GRADE_CLASS_NAMES, LKG_UKG_LADDER, TEACHER_CLASS_NAME, ladderFor, sortClasses } from "@/lib/grades";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -88,7 +88,7 @@ function formatMonthLabel(monthKey: string): string {
 const selectClassName = "px-4 py-1.5 rounded-lg text-sm font-semibold bg-[#121212] text-[#EAEAEA] border border-[#2D2D2D] focus:border-[#3A86FF] focus:outline-none";
 
 // Standard class names offered when adding a class ("TEACHERS ATTENDANCE" holds teacher attendance)
-const CLASS_NAME_OPTIONS = [...GRADE_LADDER.map((g) => g.className), TEACHER_CLASS_NAME];
+const CLASS_NAME_OPTIONS = [...GRADE_CLASS_NAMES, TEACHER_CLASS_NAME];
 
 type GraduatedStudent = { id: string; name: string; grade: string; number?: string; schoolId: string; graduationYear: number };
 
@@ -310,7 +310,7 @@ export default function AdminDashboard({
     const [showTeacherCalendar, setShowTeacherCalendar] = useState(false);
     const [showStudentSearch, setShowStudentSearch] = useState(false);
 
-    // Grades in KG → Class 6 order instead of whatever order the API returns
+    // Grades in LKG/UKG/KG → Class 6 order instead of whatever order the API returns
     const sortedClasses = useMemo(() => sortClasses(classes), [classes]);
 
     // Graduated students (moved out of the student list by the yearly promotion)
@@ -856,7 +856,7 @@ export default function AdminDashboard({
                                     <div>
                                         <h3 className="text-lg font-semibold text-[#F1F1F1]">Start New School Year</h3>
                                         <p className="text-[#EAEAEA] text-sm mt-1">
-                                            Moves every student in {school.name} up one class (KG → Class 1 … Class 6 → graduated). You&apos;ll see a preview first.
+                                            Moves every student in {school.name} up one class ({ladderFor(classes.map((c) => c.name)) === LKG_UKG_LADDER ? "LKG → UKG" : "KG"} → Class 1 … Class 6 → graduated). You&apos;ll see a preview first.
                                         </p>
                                     </div>
                                     <ShinyButton onClick={() => setShowPromotion(true)} className="px-6 py-2 font-semibold whitespace-nowrap">

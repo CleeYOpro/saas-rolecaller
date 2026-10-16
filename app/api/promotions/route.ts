@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { Pool, PoolClient } from 'pg';
 import pool from '../../../lib/db';
 import { verifyDirectorAccess } from '../../../lib/rbac';
-import { GRADE_LADDER, gradeIndex, isTeacherClass } from '../../../lib/grades';
+import { gradeIndex, isTeacherClass, ladderFor, type Grade } from '../../../lib/grades';
 
 /**
  * Yearly grade promotion for one school.
@@ -10,17 +10,17 @@ import { GRADE_LADDER, gradeIndex, isTeacherClass } from '../../../lib/grades';
  * GET  /api/promotions?schoolId=...  -> preview of what would move
  * POST /api/promotions { schoolId, year } -> runs the promotion in one transaction
  *
- * Every student moves up one class along GRADE_LADDER; students in the last class are
+ * Every student moves up one class along the school's ladder (KG → Class 1 …, or
+ * LKG → UKG → Class 1 … for schools with LKG/UKG classes); students in the last class are
  * moved into graduated_students with the current year as their graduation year.
  * Attendance rows are never touched: each keeps the class_id it was taken in, so past
  * school years still show who was in which class. The teachers class is ignored.
  */
 
-const LAST = GRADE_LADDER.length - 1;
-
 type Plan = {
-  classIds: (string | null)[]; // class id per GRADE_LADDER entry, null if the school doesn't have it yet
-  counts: number[]; // students per GRADE_LADDER entry
+  ladder: readonly Grade[]; // the progression this school follows
+  classIds: (string | null)[]; // class id per ladder entry, null if the school doesn't have it yet
+  counts: number[]; // students per ladder entry
   duplicates: string[]; // grades that match more than one class
   untouched: { name: string; count: number }[]; // non-grade classes with students (teachers excluded)
 };
@@ -35,20 +35,22 @@ async function loadPlan(db: Pool | PoolClient, schoolId: string): Promise<Plan> 
     [schoolId]
   );
 
+  const ladder = ladderFor(result.rows.map((row) => row.name));
   const plan: Plan = {
-    classIds: GRADE_LADDER.map(() => null),
-    counts: GRADE_LADDER.map(() => 0),
+    ladder,
+    classIds: ladder.map(() => null),
+    counts: ladder.map(() => 0),
     duplicates: [],
     untouched: [],
   };
 
   for (const row of result.rows) {
-    const i = gradeIndex(row.name);
+    const i = gradeIndex(row.name, ladder);
     if (i === -1) {
       if (!isTeacherClass(row.name) && row.count > 0) plan.untouched.push({ name: row.name, count: row.count });
       continue;
     }
-    if (plan.classIds[i]) plan.duplicates.push(GRADE_LADDER[i].className);
+    if (plan.classIds[i]) plan.duplicates.push(ladder[i].className);
     plan.classIds[i] = row.id;
     plan.counts[i] += row.count;
   }
@@ -57,17 +59,19 @@ async function loadPlan(db: Pool | PoolClient, schoolId: string): Promise<Plan> 
 }
 
 function summarize(plan: Plan, year: number) {
+  const { ladder } = plan;
+  const last = ladder.length - 1;
   return {
-    steps: GRADE_LADDER.map((g, i) => ({
+    steps: ladder.map((g, i) => ({
       from: g.className,
-      to: i < LAST ? GRADE_LADDER[i + 1].className : String(year),
+      to: i < last ? ladder[i + 1].className : String(year),
       count: plan.counts[i],
-      graduating: i === LAST,
+      graduating: i === last,
     })),
-    promotedCount: plan.counts.slice(0, LAST).reduce((sum, n) => sum + n, 0),
-    graduatingCount: plan.counts[LAST],
+    promotedCount: plan.counts.slice(0, last).reduce((sum, n) => sum + n, 0),
+    graduatingCount: plan.counts[last],
     // Target classes the school doesn't have yet but will need
-    newClasses: GRADE_LADDER.slice(1)
+    newClasses: ladder.slice(1)
       .filter((_, i) => plan.counts[i] > 0 && !plan.classIds[i + 1])
       .map((g) => g.className),
     duplicates: plan.duplicates,
@@ -145,16 +149,19 @@ export async function POST(request: Request) {
       return await fail(409, `This school has more than one ${plan.duplicates.join(', ')} class. Merge them before promoting.`);
     }
 
+    const { ladder } = plan;
+    const last = ladder.length - 1;
+
     // Graduate the last class first. Copy before deleting: the delete trigger only lets a
     // student with attendance leave `students` once they exist in graduated_students.
     let graduatedCount = 0;
-    if (plan.classIds[LAST] && plan.counts[LAST] > 0) {
+    if (plan.classIds[last] && plan.counts[last] > 0) {
       const graduated = await client.query(
         `INSERT INTO graduated_students (id, school_id, name, grade, number, graduation_year, created_at)
          SELECT id, school_id, name, grade, number, $2, created_at FROM students WHERE class_id = $1`,
-        [plan.classIds[LAST], year]
+        [plan.classIds[last], year]
       );
-      await client.query('DELETE FROM students WHERE class_id = $1', [plan.classIds[LAST]]);
+      await client.query('DELETE FROM students WHERE class_id = $1', [plan.classIds[last]]);
       graduatedCount = graduated.rowCount ?? 0;
     }
 
@@ -162,24 +169,24 @@ export async function POST(request: Request) {
     // only where it held the old grade value; anything else in that column is left alone.
     let promotedCount = 0;
     const createdClasses: string[] = [];
-    for (let i = LAST - 1; i >= 0; i--) {
+    for (let i = last - 1; i >= 0; i--) {
       if (!plan.classIds[i] || plan.counts[i] === 0) continue;
 
       let targetId = plan.classIds[i + 1];
       if (!targetId) {
         const created = await client.query(
           'INSERT INTO classes (name, school_id) VALUES ($1, $2) RETURNING id',
-          [GRADE_LADDER[i + 1].className, schoolId]
+          [ladder[i + 1].className, schoolId]
         );
         targetId = created.rows[0].id as string;
-        createdClasses.push(GRADE_LADDER[i + 1].className);
+        createdClasses.push(ladder[i + 1].className);
       }
 
       const moved = await client.query(
         `UPDATE students
          SET class_id = $2, grade = CASE WHEN grade = $3 THEN $4 ELSE grade END
          WHERE class_id = $1`,
-        [plan.classIds[i], targetId, GRADE_LADDER[i].grade, GRADE_LADDER[i + 1].grade]
+        [plan.classIds[i], targetId, ladder[i].grade, ladder[i + 1].grade]
       );
       promotedCount += moved.rowCount ?? 0;
     }
